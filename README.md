@@ -1,10 +1,10 @@
 ## Tutorial on model assesment, selection and inference after selection
 
-Example notebooks in R using rstanarm, rstan, bayesplot, loo, projpred
+Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstanarm), [rstan](https://cran.r-project.org/package=rstan), [bayesplot](https://cran.r-project.org/package=bayesplot), [loo](https://cran.r-project.org/package=loo), [projpred](https://github.com/stan-dev/projpred)
 
 ### Outline
 
-Slides
+Slides (soon)
 
 * Basics of predictive performance estimation
 * When cross-validation is not needed
