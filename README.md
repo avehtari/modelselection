@@ -4,7 +4,7 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 
 ### Outline
 
-Slides (soon)
+[Slides](modelselection_tutorial_slides.pdf)
 
 * Basics of predictive performance estimation
 * When cross-validation is not needed
