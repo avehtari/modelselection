@@ -2,11 +2,12 @@
 
 Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstanarm), [rstan](https://cran.r-project.org/package=rstan), [bayesplot](https://cran.r-project.org/package=bayesplot), [loo](https://cran.r-project.org/package=loo), [projpred](https://github.com/stan-dev/projpred)
 
-### Outline
+### Slides
 
 * [Model selection tutorial slides](modelselection_tutorial_slides.pdf)
 * [Regularized Horseshoe slides](regularizedhorseshoe_slides.pdf)
 
+### Outline of the tutorial and links to notebooks
 * Basics of predictive performance estimation
 * When cross-validation is not needed
   * Simple model we trust - [betablockers](https://rawgit.com/avehtari/modelselection_tutorial/master/betablockers.html)
@@ -22,4 +23,3 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
   * [colinear](https://rawgit.com/avehtari/modelselection_tutorial/master/colinear.html)
   * [diabetes](https://rawgit.com/avehtari/modelselection_tutorial/master/diabetes.html)
   * [projpred](https://github.com/stan-dev/projpred)
-
