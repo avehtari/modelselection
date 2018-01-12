@@ -4,7 +4,8 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 
 ### Outline
 
-[Slides](modelselection_tutorial_slides.pdf)
+* [Model selection tutorial slides](modelselection_tutorial_slides.pdf)
+* [Regularized Horseshoe slides](regularizedhorseshoe_slides.pdf)
 
 * Basics of predictive performance estimation
 * When cross-validation is not needed
@@ -17,4 +18,8 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * When cross-validation is not enough
   * large number of models - [diabetes](https://rawgit.com/avehtari/modelselection_tutorial/master/diabetes.html)
 * loo 2.0 (coming soon)
-* [projpred](https://github.com/stan-dev/projpred)
+* Projection predictive model selection
+  * [colinear](https://rawgit.com/avehtari/modelselection_tutorial/master/colinear.html)
+  * [diabetes](https://rawgit.com/avehtari/modelselection_tutorial/master/diabetes.html)
+  * [projpred](https://github.com/stan-dev/projpred)
+
