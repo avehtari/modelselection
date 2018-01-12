@@ -17,7 +17,7 @@ This example comes from Chapter 8.3 of [Gelman and Hill (2007)](http://www.stat.
 
 We want to make inferences about the efficacy of a certain pest management system at reducing the number of roaches in urban apartments. Here is how Gelman and Hill describe the experiment (pg. 161):
 
-> the treatment and control were applied to 160 and 104 apartments, respectively, and the outcome measurement yiyi in each apartment ii was the number of roaches caught in a set of traps. Different apartments had traps for different numbers of days
+> the treatment and control were applied to 160 and 104 apartments, respectively, and the outcome measurement $y_i$ in each apartment $i$ was the number of roaches caught in a set of traps. Different apartments had traps for different numbers of days
 
 In addition to an intercept, the regression predictors for the model are the pre-treatment number of roaches `roach1`, the treatment indicator `treatment`, and a variable indicating whether the apartment is in a building restricted to elderly residents `senior`. Because the number of days for which the roach traps were used is not the same for all apartments in the sample, we include it as an `exposure2` by adding $\ln(u_i)$) to the linear predictor $\eta_i$ and it can be specified using the `offset` argument to `stan_glm`.
 
@@ -57,6 +57,7 @@ Plot posterior
 ```{r}
 mcmc_areas(as.matrix(stan_glmp),prob_outer = .9999)
 ```
+
 We have all marginals significantly away from zero.
 
 We can use Pareto-smoothed importance sampling as model checking tool, too.
@@ -67,6 +68,7 @@ We got serious warnings, let's plot khat values.
 ```{r}
 plot(loop)
 ```
+
 There are several observations which are highly influential, which
 indicates potential model misspecification.
 
@@ -102,7 +104,7 @@ prop_zero <- function(y) mean(y == 0)
 (prop_zero_test1 <- pp_check(stan_glmp, plotfun = "stat", stat = "prop_zero"))
 ```
 
-We change Poisson model to more robust negative binomial model
+Next we change the Poisson model to a more robust negative binomial model
 ```{r,warning=FALSE,error=FALSE}
 stan_glmnb <- update(stan_glmp, family = neg_binomial_2)
 ```
@@ -112,12 +114,14 @@ Plot posterior
 mcmc_areas(as.matrix(stan_glmnb), prob_outer = .9999,
     pars = c("(Intercept)","roach1","treatment","senior"))
 ```
+
 Treatment effect is much closer to zero, and senior effect has lot of probability mass on both sides of 0. So it matters, which model we use.
 
 We discuss posterior dependencies in more detail in `colinear` notebook, but for reference we plot also here paired marginals.
 ```{r}
 mcmc_pairs(as.matrix(stan_glmnb),pars = c("(Intercept)","roach1","treatment","senior"))
 ```
+
 There are some posterior correlations, but not something which would change our conclusions.
 
 Let's check Pareto khat diagnostics

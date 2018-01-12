@@ -46,6 +46,7 @@ To analyse whether the treatment is useful, we can use Binomial model for both g
 fit_bin2 <- stan_glm(y/N ~ grp2, family = binomial(), data = d_bin2,
                      weights = N, refresh=0)
 ```
+
 Plot odds ratio
 ```{r}
 samples_bin2 <- rstan::extract(fit_bin2$stanfit)
@@ -55,6 +56,7 @@ oddsratio <- (theta2/(1-theta2))/(theta1/(1-theta1))
 ggplot() + geom_histogram(aes(oddsratio), bins = 50, fill = 'darkblue', color = 'black') +
   labs(y = '') + scale_y_continuous(breaks = NULL)
 ```
+
 The probability that odds-ratio is less than 1:
 ```{r}
 print(mean(oddsratio<1),2)
@@ -118,11 +120,13 @@ load(file="binom_test_densities.RData")
 ggplot(betaprobs_densities, aes(x = values, y = ind, height = scaled)) + 
   geom_density_ridges(stat = "identity", scale=0.6)
 ```
+
 Variation in loo comparison when true oddsratio is varied.
 ```{r}
 ggplot(looprobs_densities, aes(x = values, y = ind, height = scaled)) + 
   geom_density_ridges(stat = "identity", scale=0.6)
 ```
+
 We see that using the posterior distribution from the model is more
 sensitive to detect the effect, but cross-validation will detect it
 eventually too. The difference here comes that cross-validation
@@ -138,6 +142,7 @@ where $M_*$ is a reference model we trust. The next figure shows the results fro
 ggplot(refprobs_densities, aes(x = values, y = ind, height = scaled)) + 
   geom_density_ridges(stat = "identity", scale=0.6)
 ```
+
 We can see better accuracy than for cross-validation. We come back to this later in the tutorial.
 
 <br />
