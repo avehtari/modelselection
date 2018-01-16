@@ -141,7 +141,7 @@ mcmc_areas(as.matrix(projg),
            pars = c('(Intercept)', names(fitg_cv$varsel$vind[1:2])))
 ```
 
-Even if we started with a model which had due to a co-linearity difficult to interpret posterior, the projected posterior is able to match closely the true values. The necessary information was in the full model and with the projection we were able to form the projected posterior which we should use if x3 and x4 are seto 0.
+Even if we started with a model which had due to a co-linearity difficult to interpret posterior, the projected posterior is able to match closely the true values. The necessary information was in the full model and with the projection we were able to form the projected posterior which we should use if x3 and x4 are set to 0.
 
 Back to the Tyre's question "Does model averaging make sense?". If we are interested just in good predictions we can do continuous model averaging by using suitable priors and by integrating over the posterior. If we are intersted in predcitions, then we don't first average weights (ie posterior mean), but use all weight values to compute predictions and do the averaging of the predictions. All this is automatic in Bayesian framework. 
 
