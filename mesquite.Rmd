@@ -75,7 +75,7 @@ display(lm2)
 ```
 Hmmm.... R-squared dropped a lot, so it seems that other variables are useful even if estimated effects and tehir standard errors indicate that they are not relevant. There are approach for maximum likelihood estimated models to investigate this, but we'll switch now to Bayesian inference using rstanarm.
 
-The corresponding rstanarm model fir
+The corresponding rstanarm model fit
 ```{r}
 fitg <- stan_glm(formula = log(LeafWt) ~ log(CanVol) + log(CanAre) + log(CanSha) + log(TotHt) + log(Dens) + Group, data = dat, refresh=0)
 ```
@@ -108,7 +108,7 @@ Looking at the pairwise posteriors we can see high correlations especially betwe
 mcmc_pairs(as.matrix(fitg),pars = c("log(CanVol)","log(CanAre)","log(CanSha)","log(TotHt)","log(Dens)"))
 ```
 
-If look more carefully on of the subplots, we see that although marginal posterior intervals overlap 0, some pairwise joint posteriors are not overlapping 0. Let's look more caerfully the joint posterior of log(CanVol) and log(CanAre).
+If look more carefully on of the subplots, we see that although marginal posterior intervals overlap 0, some pairwise joint posteriors are not overlapping 0. Let's look more carefully the joint posterior of log(CanVol) and log(CanAre).
 ```{r}
 mcmc_scatter(as.matrix(fitg), pars = c("log(CanVol)","log(CanAre)"))+geom_vline(xintercept=0)+geom_hline(yintercept=0)
 ```
@@ -171,7 +171,6 @@ mcmc_areas(as.matrix(projg),
            pars = c('(Intercept)', names(fitg_cv$varsel$vind[1:fitg_cv$varsel$ssize])), prob_outer=0.95)
 ```
 
-Even if we started with a model which had due to a co-linearity difficult to interpret posterior, the projected posterior is able to match closely the true values. The necessary information was in the full model and with the projection we were able to form the projected posterior which we should use if some of the variables are set to 0.
 
 <br />
 
