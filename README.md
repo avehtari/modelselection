@@ -23,3 +23,7 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
   * [colinear](https://rawgit.com/avehtari/modelselection_tutorial/master/colinear.html)
   * [diabetes](https://rawgit.com/avehtari/modelselection_tutorial/master/diabetes.html)
   * [projpred](https://github.com/stan-dev/projpred)
+
+### Additional demos added after the tutorial
+
+* Colinearity and projpred - [mesquite](https://rawgit.com/avehtari/modelselection_tutorial/master/mesquite.html)
