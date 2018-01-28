@@ -42,9 +42,6 @@ data(roaches)
 roaches$roach1 <- roaches$roach1 / 100
 ```
 
-XXX
-Copy explanation
-
 Fit with stan_glm
 ```{r,warning=FALSE,error=FALSE,message=FALSE}
 stan_glmp <- stan_glm(y ~ roach1 + treatment + senior, offset = log(exposure2),
