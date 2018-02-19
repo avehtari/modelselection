@@ -145,7 +145,7 @@ using `stan_glm`.
 
 [2]: https://cran.r-project.org/web/packages/rstanarm/vignettes/rstanarm.html
 
-Load libraries. Other packages are available in CRAN, but projpred package needs to be installed from github (it will be available in CRAN later).
+Load libraries. 
 ```{r, echo=FALSE}
 library(rstanarm)
 options(mc.cores = parallel::detectCores())
@@ -156,14 +156,7 @@ library(ggplot2)
 library(bayesplot)
 library(caret)
 library(pROC)
-if (!require(devtools)) {
-	install.packages("devtools")
-	library(devtools)
-}
-if (!require(projpred)) {
-  devtools::install_github('stan-dev/projpred', build_vignettes = TRUE)
-  library(projpred)
-}
+library(projpred)
 ```
 
 
