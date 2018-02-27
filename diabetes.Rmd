@@ -357,8 +357,11 @@ bayesplot::mcmc_pairs(as.matrix(post2),pars = c("pregnancies","age"))
 
 
 If projpred package is installed, we can do variable selection.
-```{r}
+```{r, results='hide'}
 varsel2 <- cv_varsel(post2, method='forward')
+```
+
+```{r}
 varsel2$varsel$vind
 ```
 

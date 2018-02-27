@@ -106,10 +106,14 @@ Tyre used AIC_c to estimate the model performance. In Bayesian setting we could 
 The paper http://link.springer.com/article/10.1007/s11222-016-9649-y also shows that a projection predictive approach can be used to make a model reduction, that is, choosing a smaller model with some coefficients set to 0. The projection predictive approach solves the problem how to do inference after the selection. The solution is to project the full model posterior to the restricted subspace. See more in http://link.springer.com/article/10.1007/s11222-016-9649-y
 
 We make the projective predictive variable selection using the previous full model. A fast leave-one-out cross-validation approach http://link.springer.com/article/10.1007/s11222-016-9696-4 is used to choose the model size.
-```{r}
+```{r, results='hide'}
 fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO')
+```
+
+```{r}
 fitg_cv$varsel$vind
 ```
+
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
 varsel_plot(fitg_cv, statistics = c('mlpd', 'mse'), deltas=T)

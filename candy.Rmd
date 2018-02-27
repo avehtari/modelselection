@@ -12,7 +12,7 @@ knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, co
 
 This notebook was inspired by Joshua Loftus' two blog posts "Model selection bias invalidates significance tests" http://joshualoftus.com/post/model-selection-bias-invalidates-significance-tests/ and "A conditional approach to inference after model selection"  http://joshualoftus.com/post/conditional-approach-to-inference-after-model-selection/.
 
-In this notebook we illustrate Bayesian inference for model selection, including projection predictive approach which makes decision theoretically justified inference after model selection..
+In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO http://link.springer.com/article/10.1007/s11222-016-9696-4 and projection predictive approach http://link.springer.com/article/10.1007/s11222-016-9649-y which makes decision theoretically justified inference after model selection..
 
 Load libraries.
 ```{r}
@@ -81,6 +81,7 @@ fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO')
 ```{r}
 fitg_cv$varsel$vind
 ```
+
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
 varsel_plot(fitg_cv, statistics = c('mlpd', 'mse'), deltas=T)
@@ -102,7 +103,7 @@ round(posterior_interval(as.matrix(projg)),1)
 ```
 This looks good as the true values for "null" data are intercept=0, sigma=1.
 
-We also test regularized horseshoe prior which has more prior mass near 0.
+We also test regularized horseshoe prior https://projecteuclid.org/euclid.ejs/1513306866 which has mor prior mass near 0.
 ```{r}
 fitrhs <- stan_glm(ry ~ ., data = dfr, prior=hs(), seed=1, refresh=0)
 ```
@@ -153,6 +154,7 @@ fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO')
 ```{r}
 fitg_cv$varsel$vind
 ```
+
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
 varsel_plot(fitg_cv, statistics = c('mlpd', 'mse'), deltas=T)
