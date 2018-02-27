@@ -1,0 +1,141 @@
+---
+title: "Bayesian variable selection for red wine quality ranking data"
+output:
+  html_document: default
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+```
+
+This notebook was inspired by Eric Novik's slides "Deconstructing Stan Manual Part 1: Linear". The idea is to demonstrate how easy it is to do good variable selection with rstanarm, loo, and projpred.
+
+In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO http://link.springer.com/article/10.1007/s11222-016-9696-4 and projection predictive approach http://link.springer.com/article/10.1007/s11222-016-9649-y which makes decision theoretically justified inference after model selection.
+
+Load libraries.
+```{r}
+library(rstanarm)
+options(mc.cores = parallel::detectCores())
+library(loo)
+library(bayesplot)
+library(projpred)
+```
+
+We use Wine quality data set from UCI Machine Learning repository https://archive.ics.uci.edu/ml/datasets/wine+qualitycandy.
+```{r}
+d <- read.delim("winequality-red.csv", sep = ";")
+dim(d)
+# Remove duplicated
+d <- d[!duplicated(d), ] # remove the duplicates
+dim(d)
+names(d)
+```
+
+We scale the covariates so that when looking at the marginal posteriors for the effects they are on the same scale. 
+```{r}
+ds <- scale(d)
+df <- as.data.frame(ds)
+```
+
+The rstanarm package provides stan_glm which accepts same arguments as glm, but makes full Bayesian inference using Stan (Hamiltonian Monte Carlo No-U-Turn-sampling). By default a weakly informative Gaussian prior is used for weights.
+```{r}
+fitg <- stan_glm(quality ~ ., data = df, QR=TRUE, seed=1, refresh=0)
+```
+Let's look at the summary:
+```{r}
+summary(fitg)
+```
+
+We didn't get divergences, Rhat's are less than 1.1 and n_eff's are useful (see, e.g., http://mc-stan.org/users/documentation/case-studies/rstan_workflow.html).
+
+```{r}
+mcmc_areas(as.matrix(fitg),prob_outer = .95)
+```
+
+Several 95% posterior intervals are not overlapping 0, so maybe there is something useful here.
+
+In case of collinear variables it is possible that marginal posteriors overlap 0, but the covariates can still useful for prediction. With many variables it will be difficult to analyse joint posterior to see which variables are jointly relevant. We can easily test whether any of the covariates are useful by using cross-validation to compare to a null model,
+```{r}
+fitg0 <- stan_glm(quality ~ 1, data = df, seed=1, refresh=0)
+```
+
+```{r}
+(loog <- loo(fitg))
+(loog0 <- loo(fitg0))
+compare(loog0,loog)
+```
+
+Based on cross-validation covariates together have a high predictive power. If we need just the predictions we can stop here, but if we want to learn more about the relevance of the covariates we can continue with variable selection.
+
+We make the projective predictive variable selection using projpred package. A fast leave-one-out cross-validation approach http://link.springer.com/article/10.1007/s11222-016-9696-4 is used to choose the model size.
+```{r, results='hide'}
+fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO')
+```
+
+```{r}
+fitg_cv$varsel$vind
+```
+
+We can now look at the estimated predictive performance of smaller models compared to the full model.
+```{r}
+varsel_plot(fitg_cv, statistics = c('mlpd', 'mse'), deltas=T)
+```
+
+Three or four variables seems to be needed to get the same performance as the full model.
+We can get a loo-cv based recommendation for the model size to choose.
+```{r}
+fitg_cv$varsel$ssize
+```
+projpred recommends to use four variables: alcohol, volatile.acidity, sulphates, and chlorides.
+
+Next we form the projected posterior for the chosen model. This projected model can be used in the future to make predictions by using only the selected variables.
+```{r}
+projg <- project(fitg_cv, nv = 4, ns = 4000)
+round(colMeans(as.matrix(projg)),1)
+round(posterior_interval(as.matrix(projg)),1)
+```
+
+The marginals of projected posteriors look like this.
+```{r}
+mcmc_areas(as.matrix(projg), 
+           pars = c('(Intercept)', names(fitg_cv$varsel$vind[1:4])))
+```
+
+
+We also test regularized horseshoe prior which has more prior mass near 0.
+```{r}
+fitrhs <- stan_glm(quality ~ ., data = df, prior=hs(), seed=1, refresh=0)
+```
+
+```{r}
+mcmc_areas(as.matrix(fitrhs),prob_outer = .95)
+```
+MAny of the variables are shrunk more towards 0, but still based on these marginals it is not as easy to select the most useful variables as it is with projpred.
+
+The posteriors with normal and regularized horseshoe priors are clearly different, but does this have an effect to the predictions? In case of collinearity prior may have a strong effect on posterior, but a weak effect on posterior predictions. We can use loo to compare
+
+```{r}
+(loorhs <- loo(fitrhs))
+compare(loog,loorhs)
+```
+There is no difference in predictive performance and thus we don't need to repeat the projpred variable selection for the model with regularized horseshoe prior.
+
+
+<br />
+
+
+### Appendix: Session information
+
+```{r}
+sessionInfo()
+```
+
+<br />
+
+
+### Appendix: Licenses
+
+* Code &copy; 2017, Aki Vehtari, licensed under BSD-3.
+* Text &copy; 2017, Aki Vehtari, licensed under CC-BY-NC 4.0.
