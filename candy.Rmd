@@ -192,13 +192,13 @@ mcmc_areas(as.matrix(fitrhs),prob_outer = .95)
 ```
 Variable chocolateTRUE is clearly different from the others. The other variables have marginals which hint to collinearity.
 
-The posteriors with normal and regularize horseshoe priors are clearly different, but does this have an effect to the predictions? In case of collinearity prior may have a strong effect on posterior, but a weak effect on posterior predictions. We can use loo to compare
+The posteriors with normal and regularized horseshoe priors are clearly different, but does this have an effect to the predictions? In case of collinearity prior may have a strong effect on posterior, but a weak effect on posterior predictions. We can use loo to compare
 
 ```{r}
 (loorhs <- loo(fitrhs))
 compare(loog,loorhs)
 ```
-There is no difference in predictive performance and thus we don't need to repeat the projpred variable selection for the mode with regularized horseshoe prior.
+There is no difference in predictive performance and thus we don't need to repeat the projpred variable selection for the model with regularized horseshoe prior.
 
 
 <br />
