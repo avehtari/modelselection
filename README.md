@@ -27,7 +27,7 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 ### Additional demos added after the tutorial
 
 * projpred examples
-  * Collinearity - [mesquite](https://rawgit.com/avehtari/modelselection_tutorial/master/mesquite.html)
+  * collinearity - [mesquite](https://rawgit.com/avehtari/modelselection_tutorial/master/mesquite.html)
   * random vs original data - [candy](https://rawgit.com/avehtari/modelselection_tutorial/master/candy.html)
   * [winequality-red](https://rawgit.com/avehtari/modelselection_tutorial/master/winequality-red.html)
 * See also [projpred quick start vignette](https://rawgit.com/stan-dev/projpred/master/vignettes/quickstart.html)
