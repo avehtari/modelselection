@@ -367,7 +367,7 @@ varsel2$varsel$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(varsel2, statistics = c('mlpd', 'pctcorr'), deltas=T)
+varsel_plot(varsel2, stats = c('mlpd', 'pctcorr'), deltas=T)
 ```
 
 And we get a LOO based recommendation for the model size to choose

@@ -116,7 +116,7 @@ fitg_cv$varsel$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, statistics = c('mlpd', 'mse'), deltas=T)
+varsel_plot(fitg_cv, stats = c('mlpd', 'mse'), deltas=T)
 ```
 
 And we get a loo-cv based recommendation for the model size to choose
