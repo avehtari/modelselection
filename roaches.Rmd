@@ -47,7 +47,7 @@ Fit with stan_glm
 stan_glmp <- stan_glm(y ~ roach1 + treatment + senior, offset = log(exposure2),
                       data = roaches, family = poisson, 
                       prior = normal(0,2.5), prior_intercept = normal(0,5),
-                      chains = 4, cores = 1, seed = 1, refresh=0)
+                      chains = 4, cores = 1, seed = 170400963, refresh=0)
 ```
 
 Plot posterior
@@ -76,15 +76,15 @@ We form 3 models by dropping each of the covariates out.
 stan_glmm1p <- stan_glm(y ~ treatment + senior, offset = log(exposure2),
                       data = roaches, family = poisson, 
                       prior = normal(0,2.5), prior_intercept = normal(0,5),
-                      chains = 4, cores = 1, seed = 1, refresh=-1)
+                      chains = 4, cores = 1, seed = 170400963, refresh=-1)
 stan_glmm2p <- stan_glm(y ~ roach1 + senior, offset = log(exposure2),
                       data = roaches, family = poisson, 
                       prior = normal(0,2.5), prior_intercept = normal(0,5),
-                      chains = 4, cores = 1, seed = 1, refresh=-1)
+                      chains = 4, cores = 1, seed = 170400963, refresh=-1)
 stan_glmm3p <- stan_glm(y ~ roach1 + treatment, offset = log(exposure2),
                       data = roaches, family = poisson, 
                       prior = normal(0,2.5), prior_intercept = normal(0,5),
-                      chains = 4, cores = 1, seed = 1, refresh=-1)
+                      chains = 4, cores = 1, seed = 170400963, refresh=-1)
 ```
 
 Although khats were very large we can make a quick test with PSIS-LOO (if the comparison would say there is difference, then PSIS-LOO couldn't be trusted and PSIS-LOO+ or k-fold-CV woul be needed).

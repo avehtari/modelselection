@@ -44,7 +44,7 @@ We start first analysing the "null" data set.
 
 The rstanarm package provides stan_glm which accepts same arguments as glm, but makes full Bayesian inference using Stan (Hamiltonian Monte Carlo No-U-Turn-sampling). Doing variable selection we are anyway assuming that some of the variables are not relevant, and thus it is sensible to use priors which assume some of the covariate effects are close to zero. We use regularized horseshoe prior https://projecteuclid.org/euclid.ejs/1513306866 which has lot of prior mass near 0, but also thick tails allowing relevant effects to not shrunk. 
 ```{r}
-fitrhs <- stan_glm(ry ~ ., data = dfr, prior=hs(), seed=1, refresh=0)
+fitrhs <- stan_glm(ry ~ ., data = dfr, prior=hs(), seed=150702646, refresh=0)
 ```
 Let's look at the summary:
 ```{r}
@@ -60,7 +60,7 @@ All 95% posterior intervals are overlapping 0, regularized horseshoe prior makes
 
 We can easily test whether any of the covariates are useful by using cross-validation to compare to a null model,
 ```{r}
-fit0 <- stan_glm(ry ~ 1, data = dfr, seed=1, refresh=0)
+fit0 <- stan_glm(ry ~ 1, data = dfr, seed=150702646, refresh=0)
 ```
 
 ```{r}
@@ -104,7 +104,7 @@ This looks good as the true values for "null" data are intercept=0, sigma=1.
 Next we repeat the above analysis with original target variable winpercent.
 
 ```{r}
-fitrhs <- stan_glm(winpercent ~ ., data = df, prior=hs(), seed=1, refresh=0)
+fitrhs <- stan_glm(winpercent ~ ., data = df, prior=hs(), seed=150702646, refresh=0)
 ```
 Let's look at the summary:
 ```{r}
@@ -121,7 +121,7 @@ mcmc_areas(as.matrix(fitrhs),prob_outer = .95)
 
 In case of collinear variables it is possible that marginal posteriors overlap 0, but the covariates can still useful for prediction. With many variables it will be difficult to analyse joint posterior to see which variables are jointly relevant. We can easily test whether any of the covariates are useful by using cross-validation to compare to a null model,
 ```{r}
-fit0 <- stan_glm(winpercent ~ 1, data = df, seed=1, refresh=0)
+fit0 <- stan_glm(winpercent ~ 1, data = df, seed=150702646, refresh=0)
 ```
 
 ```{r}

@@ -215,7 +215,7 @@ t_prior <- student_t(df = 7, location = 0, scale = 2.5)
 post1 <- stan_glm(outcome ~ ., data = diabetes,
                  family = binomial(link = "logit"), 
                  prior = t_prior, prior_intercept = t_prior, QR=TRUE,
-                 seed = 1)
+                 seed = 14124869)
 ```
 
 **stan_glm** returns the posterior distribution for the parameters describing the uncertainty related to unknown parameter values:
@@ -251,7 +251,7 @@ Above we see that PSIS-LOO result is reliable as all Pareto k estimates are smal
 
 Compute baseline result without covariates.
 ```{r}
-post0 <- stan_glm(outcome ~ 1, data = diabetes, family = binomial(link = "logit"), seed = 1)
+post0 <- stan_glm(outcome ~ 1, data = diabetes, family = binomial(link = "logit"), seed = 14124869)
 ```
 Compare to baseline
 ```{r}
@@ -325,7 +325,7 @@ t_prior <- student_t(df = 7, location = 0, scale = 2.5)
 post2 <- stan_glm(outcome ~ ., data = diabetes,
                  family = binomial(link = "logit"), 
                  prior = hs_prior, prior_intercept = t_prior,
-                 seed = 1, adapt_delta = 0.999)
+                 seed = 14124869, adapt_delta = 0.999)
 ```
 
 We see that the horseshoe prior has shrunk the posterior distribution of irrelevant features closer to zero, without affecting the posterior distribution of the relevant features.
