@@ -1,0 +1,240 @@
+---
+title: "Projection predictive variable selection – A review and recommendations
+for the practicing statistician"
+output:
+  html_document: default
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+```
+
+This notebook was inspired by the article [Heinze, Wallisch, and
+Dunkler (2018). Variable selection – A review and recommendations for
+the practicing statistician](https://doi.org/10.1002/bimj.201700067).
+They provide ``an overview of various available variable selection
+methods that are based on significance or information criteria,
+penalized likelihood, the change-in-estimate criterion, background
+knowledge, or combinations thereof.'' I agree that they provide
+sensible recommendations and warnings for those methods.
+Similar recommendations and warnings hold for information criterion
+and naive cross-validation based variable selection in Bayesian
+framework as demonstrated by [Piironen and Vehtari (2017). Comparison
+of Bayesian predictive methods for model
+selection.](https://doi.org/10.1007/s11222-016-9649-y).
+
+[Piironen and Vehtari
+(2017)](https://doi.org/10.1007/s11222-016-9649-y) demonstrate also
+the superior stability of projection predictive variable selection
+(see specially figures 4 and 10). In this notebook I demonstrate
+projection predictive variable selection implemented in R package
+[projpred](https://cran.r-project.org/package=projpred) with the same
+body fat data as used in Section 3.3 of the article by Heinze,
+Wallisch, and Dunkler (2017).  The dataset with the background
+information is available [here]
+(https://ww2.amstat.org/publications/jse/v4n1/datasets.johnson.html)
+but Heinze, Wallisch, and Dunkler have made some data cleaning and I
+have used the same data and some bits of the code they provide in the
+supplementary material (kudos for them to support reproducible
+science).
+
+The excellent performance of the projection predictive variable selection comes from following parts
+ 1. Bayesian inference using priors and integration over all the uncertainties makes it easy to get good predictive performance with all variables included in the model.
+ 2. Projection of the information from the full model to a smaller model is able to include information and uncertainty from the left out variables (while conditioning of the smaller model to data would ignore left out variables).
+ 3. During the search through the model space comparing the predictive distributions of projected smaller models to the predictive distribution of the full model reduces greatly the variance in model comparisons.
+ 4. Even with greatly reduced variance in model comparison, the selection process slightly overfits to the data, but we can cross-validate this effect using the fast [Pareto smoothed importance sampling algorithm](https://arxiv.org/abs/1507.02646)
+
+See more practical information in [Piironen and Vehtari
+(2017)](https://doi.org/10.1007/s11222-016-9649-y) and theory in
+[Vehtari and Ojanen (2012)](https://doi.org/10.1214/12-SS102).
+The implementation in projpred package is improved version of the
+method described by [Piironen and Vehtari
+(2017)](https://doi.org/10.1007/s11222-016-9649-y) with improved model
+size selection and several options to make it faster for larger number
+of variables or bigger data sets. Manuscript with these details will
+appear during spring 2018.
+
+Note that if the goal is only the prediction no variable selection is
+needed, but projection predictive variable selection can be used to
+learn which are the most useful variables for making predictions and
+potentially reduce the future measurement costs. In the bodyfat
+example, most of the measurements have time cost and there is a
+benefit of finding the smallest set of variables to be used in the
+future for the predictions.
+
+---
+
+Load libraries.
+```{r}
+library(here)
+library(rstanarm)
+options(mc.cores = parallel::detectCores())
+library(loo)
+library(projpred)
+library(bayesplot)
+library(ggplot2)
+library(corrplot)
+```
+
+Load data and scale it. Heinze, Wallisch, and Dunkler (2018) used unscaled data, but we scale it for easier comparison of the effect sizes. In theory this scaling should not have detectable difference in the predictions and I did run the results also without scaling and there is no detectable difference in practice.
+```{r}
+df <- read.table(here("bodyfat.txt"), header = T, sep = ";")
+df[,4:19] <- scale(df[,4:19])
+df <- as.data.frame(df)
+n <- nrow(df)
+colnames(df[c("weight_kg", "height_cm")]) <- c("weight", "height")
+```   
+
+Lists of predictive and target variables, and formula.
+```{r}
+pred <- c("age", "weight", "height", "neck", "chest", "abdomen", "hip", 
+          "thigh", "knee", "ankle", "biceps", "forearm", "wrist")
+target <- "siri"
+formula <- paste("siri~", paste(pred, collapse = "+"))
+```
+
+Correlation structure
+```{r}
+corrplot(cor(df[, c(target,pred)]))
+```
+
+Fit full Bayesian model. We use weakly informative regularized horseshoe prior [(Piironen and Vehtari, 2017)](https://projecteuclid.org/euclid.ejs/1513306866) to include prior assumption that some of the variables might be irrelevant.
+```{r}
+fitrhs <- stan_glm(formula, data = df, prior=hs(), QR=TRUE, 
+                   seed=1513306866, refresh=0)
+summary(fitrhs)
+```
+
+Plot marginal posterior of the coefficients.
+```{r}
+mcmc_areas(as.matrix(fitrhs)[,2:14])
+```
+
+We can see that the posterior of abdomen coefficient is far away from
+zero, but it's not as clear what other variables should be included. `weight_kg` has wide marginal overlapping zero, which hints potentially relevant variable with correlation in joint posterior.
+
+Looking at th marginals has the problem that correlating variables may
+have marginal posteriors overlapping zero while joint posterior
+typical set does nit include zero. Compare marginals of `height_cm`
+and `height_kg` and their joint distribution.
+```{r}
+mcmc_scatter(as.matrix(fitrhs), pars = c("height", "weight"))+geom_vline(xintercept=0)+geom_hline(yintercept=0)
+```
+
+Projection predictive variable selection is easily made with
+`cv_varsel` function, which also computes an LOO-CV estimate of the
+predictive performance for the best models with certain number of
+variables. Heinze, Wallisch, and Dunkler (2018) ``consider abdomen and
+height as two central IVs [independent variables] for estimating body
+fat proportion, and will not subject these two to variable
+selection.'' We subject all variables to selection. 
+```{r, results='hide'}
+fitrhs_cvvs <- cv_varsel(fitrhs, method='forward', cv_method='LOO', nloo=n)
+```
+
+The order of the variables:
+```{r}
+fitrhs_cvvs$varsel$vind
+```
+
+And the estimated predictive performance of
+smaller models compared to the full model.
+```{r}
+varsel_plot(fitrhs_cvvs, stats = c('mlpd', 'mse'), deltas=T)
+```
+
+Based on the plot 2 or 3 variables and projected posterior provide
+practically the same predictive performance as the full model. 
+We can get a LOO-CV based recommendation for the model size to choose.
+```{r}
+(nv <- fitrhs_cvvs$varsel$ssize)
+```
+
+Based on this recommendation we continue with three variables
+`abdomen`, `weight`, and `wrist`.  The model selected by Heinze,
+Wallisch, and Dunkler (2018) had seven(!) variables `height_cm`
+(fixed), `abdomen` (fixed), `wrist`, `age`, `neck`, `forearm`, and
+`chest`- Three first variables are same except that projpred selected
+`weight_kg` instead of `height_cm`, so decision to not fix variables
+seems to have been a good choice. Replacement of `height_cm` with
+`weight_kg` is not surprising since these variables do correlate as seen
+also in the above plot of joint posterior of `weight_kg` and
+`height_cm` in the full model.
+
+Form the projected posterior for the selected model.
+```{r}
+projrhs <- project(fitrhs_cvvs, nv = nv, ns = 4000)
+```
+
+Plot the marginals of the projected posterior.
+```{r}
+mcmc_areas(as.matrix(projrhs), 
+           pars = c(names(fitrhs_cvvs$varsel$vind[1:nv])))
+```
+
+So far we have seen that projpred selected a smaller set of variables
+to have very similar predictive performance as the full model. Let's
+compare next the stability of the approaches. Heinze, Wallisch, and
+Dunkler (2018) repeated the model selection using 1000 bootstrapped
+datasets. Top 20 models selected have 5--9 variables, the highest
+selection frequency is 3.2%, and cumulative selection frequency for
+top 20 models is 29.5%. These results clearly illustrate instability
+of the selection method they used.
+
+Before looking at the corresponding bootstrap results we can look at the stability of selection process based on the LOO-CV selection paths computed by `cv_varsel'. 
+
+```{r}
+source("projpredpct.R")
+rows <- nrow(fitrhs_cvvs$varsel$pctch)
+col <- nrow(fitrhs_cvvs$varsel$pctch)
+pctch <- round(fitrhs_cvvs$varsel$pctch, 2)
+colnames(pctch)[1] <- ".size"
+pct <- get_pct_arr(pctch, 13)
+col_brks <- get_col_brks()
+pct$val_grp <- as.character(sapply(pct$val, function(x) sum(x >= col_brks$breaks)))
+if (identical(rows, 0)) rows <- pct$var[1]
+pct$sel <- (pct$.size == col) & (pct$var %in% rows)
+brks <- sort(unique(as.numeric(pct$val_grp)) + 1)
+ggplot(pct, aes_(x = ~.size, y = ~var)) +
+    geom_tile(aes_(fill = ~val_grp, color = ~sel),
+              width = 1, height = 0.9, size = 1) +
+        geom_text(aes_(label = ~val, fontface = ~sel+1)) +
+    coord_cartesian(expand = FALSE) +
+    scale_y_discrete(limits = rev(levels(pct$var))) +
+    scale_x_discrete(limits = seq(1,col)) +
+    scale_color_manual(values = c("white", "black")) +
+    labs(x = "Model size", y = "",
+         title = "Fraction of cv-folds that select the given variable") +
+    scale_fill_manual(breaks = brks, values = col_brks$pal[brks]) +
+    theme_proj() +
+    theme(legend.position = "none",
+          axis.text.y = element_text(angle = 45))
+```
+
+For model sizes 1-3 selection paths in different LOO-CV cases are always the same `abdomen?, `weight`, and `wrist`. For larger model sizes there are some small variation, but mostly the order is quite consistent. 
+
+Running `stan_glm` with `prior=hs()` and `cv_varsel` do not take much time when run only once, but for a notebook running them 1000 times would take hours. The code for running the above variable selection procedure for 100 different bootstrapped datasets is as follows.
+```{r}
+writeLines(readLines("bodyfat_bootstrap.R"))
+```
+
+From 100 bootstrap iterations model size 2 was selected 99 times and model size 3 once. Model with 2 variables was always `abdomen` and `weight`. Model with 3 variables had also `wrist`. When using the full data, model size 2 was also feasible based on the predictive performance estimates. It is likely that in bootstrap iterations model size 2 was favored as bootstrapped data has less information than the full data. The selection process in projection predictive variable selection is very stable, the variability can be estimated using the fast PSIS-LOO over the selection process, and projection predictive variable selection consistently provides similar predictive performance as the full model.
+
+<br />
+
+
+### Appendix: Session information
+
+```{r}
+sessionInfo()
+```
+
+<br />
+
+
+### Appendix: Licenses
+
+* Code &copy; 2018, Aki Vehtari, licensed under BSD-3.
+* Text &copy; 2018, Aki Vehtari, licensed under CC-BY-NC 4.0.
