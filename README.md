@@ -2,6 +2,10 @@
 
 Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstanarm), [rstan](https://cran.r-project.org/package=rstan), [bayesplot](https://cran.r-project.org/package=bayesplot), [loo](https://cran.r-project.org/package=loo), [projpred](https://cran.r-project.org/package=projpred)
 
+### Video
+
+* [Model selection tutorial @ StanCon 2018 Asilomar](https://www.youtube.com/watch?v=FUROJM3u5HQ)
+
 ### Slides
 
 * [Model selection tutorial slides](modelselection_tutorial_slides.pdf)
