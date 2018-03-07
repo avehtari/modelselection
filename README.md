@@ -1,10 +1,11 @@
 ## Tutorial on model assesment, selection and inference after selection
 
-Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstanarm), [rstan](https://cran.r-project.org/package=rstan), [bayesplot](https://cran.r-project.org/package=bayesplot), [loo](https://cran.r-project.org/package=loo), [projpred](https://cran.r-project.org/package=projpred)
+Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstanarm), [rstan](https://cran.r-project.org/package=rstan), [bayesplot](https://cran.r-project.org/package=bayesplot), [loo](https://cran.r-project.org/package=loo), [projpred](https://cran.r-project.org/package=projpred). 
 
-### Video
+### Videos
 
 * [Model selection tutorial at StanCon 2018 Asilomar](https://www.youtube.com/watch?v=FUROJM3u5HQ)
+* [Regularized horseshoe talk at StanCon 2018 Asilomar](https://www.youtube.com/watch?v=umk7eOkt5k8) (regularized horseshoe video and slides are included as RHS is a good prior when we assume that some of the covariates are irrelevant)
 
 ### Slides
 
