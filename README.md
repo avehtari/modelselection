@@ -46,8 +46,8 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * Piironen, J. and Vehtari, A. (2016), Comparison of Bayesian
   predictive methods for model selection, Statistics and Computing
   27(3), 711–735. [Online](https://doi.org/10.1007/s11222-016-9649-y)
-* Piironen, J., and Vehtari, A. (2017). On the Hyperprior Choice for
-  the Global Shrinkage Parameter in the Horseshoe Prior. Proceedings
+* Piironen, J., and Vehtari, A. (2017). On the hyperprior choice for
+  the global shrinkage parameter in the horseshoe prior. Proceedings
   of the 20th International Conference on Artificial Intelligence and
   Statistics, PMLR 54:905-913.
   [Online](http://proceedings.mlr.press/v54/piironen17a.html)
@@ -68,8 +68,8 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
   importance sampling. [arXiv
   preprint](http://arxiv.org/abs/1507.02646).
 * Vehtari, A., Mononen, T., Tolvanen, V., and Winther, O. (2016).
-  Bayesian Leave-One-Out Cross-Validation Approximations for Gaussian
-  Latent Variable Models. JMLR, 17(103):1–38.
+  Bayesian leave-one-out cross-validation approximations for Gaussian
+  latent variable models. JMLR, 17(103):1–38.
   [Online](http://jmlr.org/papers/v17/14-540.html)
 * Vehtari, A. and Ojanen, J.: 2012, A survey of Bayesian predictive
   methods for model assessment, selection and comparison, Statistics
