@@ -38,6 +38,9 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
   * [winequality-red](https://rawgit.com/avehtari/modelselection_tutorial/master/winequality-red.html)
 * See also [projpred quick start vignette](https://rawgit.com/stan-dev/projpred/master/vignettes/quickstart.html)
 
+### See also
+* Nice horseshoe example in [Bayes Sparse Regression case study by Michael Betancourt](https://betanalpha.github.io/assets/case_studies/bayes_sparse_regression.html)
+
 ### References
 
 * Gelman, A., Hwang, J., and Vehtari, A. (2014). Understanding
