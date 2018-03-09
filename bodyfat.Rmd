@@ -33,12 +33,10 @@ projection predictive variable selection implemented in R package
 [projpred](https://cran.r-project.org/package=projpred) with the same
 body fat data as used in Section 3.3 of the article by Heinze,
 Wallisch, and Dunkler (2017).  The dataset with the background
-information is available [here]
-(https://ww2.amstat.org/publications/jse/v4n1/datasets.johnson.html)
+information is available [here](https://ww2.amstat.org/publications/jse/v4n1/datasets.johnson.html)
 but Heinze, Wallisch, and Dunkler have made some data cleaning and I
 have used the same data and some bits of the code they provide in the
-supplementary material (kudos for them to support reproducible
-science).
+supplementary material. There still are strange values like the one person with zero fat percentage, but I didn't do additional cleaning.
 
 The excellent performance of the projection predictive variable selection comes from following parts
  1. Bayesian inference using priors and integration over all the uncertainties makes it easy to get good predictive performance with all variables included in the model.
@@ -57,7 +55,7 @@ of variables or bigger data sets. Manuscript with these details will
 appear during spring 2018.
 
 Note that if the goal is only the prediction no variable selection is
-needed, but projection predictive variable selection can be used to
+needed. The projection predictive variable selection can be used to
 learn which are the most useful variables for making predictions and
 potentially reduce the future measurement costs. In the bodyfat
 example, most of the measurements have time cost and there is a
@@ -84,7 +82,7 @@ df <- read.table(here("bodyfat.txt"), header = T, sep = ";")
 df[,4:19] <- scale(df[,4:19])
 df <- as.data.frame(df)
 n <- nrow(df)
-colnames(df[c("weight_kg", "height_cm")]) <- c("weight", "height")
+colnames(df[c("weight_kg", "height")]) <- c("weight", "height")
 ```   
 
 Lists of predictive and target variables, and formula.
@@ -93,6 +91,7 @@ pred <- c("age", "weight", "height", "neck", "chest", "abdomen", "hip",
           "thigh", "knee", "ankle", "biceps", "forearm", "wrist")
 target <- "siri"
 formula <- paste("siri~", paste(pred, collapse = "+"))
+p <- length(pred)
 ```
 
 Correlation structure
@@ -100,9 +99,18 @@ Correlation structure
 corrplot(cor(df[, c(target,pred)]))
 ```
 
-Fit full Bayesian model. We use weakly informative regularized horseshoe prior [(Piironen and Vehtari, 2017)](https://projecteuclid.org/euclid.ejs/1513306866) to include prior assumption that some of the variables might be irrelevant.
+Fit full Bayesian model. We use weakly informative regularized horseshoe
+prior [(Piironen and Vehtari,
+2017)](https://projecteuclid.org/euclid.ejs/1513306866) to include prior
+assumption that some of the variables might be irrelevant. The selected
+$p_0$ is mean for the prior assumption. See [(Piironen and Vehtari,
+2017)](https://projecteuclid.org/euclid.ejs/1513306866) for the
+uncertainty around the implied prior for effectively non-zero coefficients.
 ```{r}
-fitrhs <- stan_glm(formula, data = df, prior=hs(), QR=TRUE, 
+p0 <- 5 # prior guess for the number of relevant variables
+tau0 <- p0/(p-p0) * 1/sqrt(n)
+rhs_prior <- hs(global_scale=tau0)
+fitrhs <- stan_glm(formula, data = df, prior=rhs_prior, QR=TRUE, 
                    seed=1513306866, refresh=0)
 summary(fitrhs)
 ```
@@ -113,12 +121,12 @@ mcmc_areas(as.matrix(fitrhs)[,2:14])
 ```
 
 We can see that the posterior of abdomen coefficient is far away from
-zero, but it's not as clear what other variables should be included. `weight_kg` has wide marginal overlapping zero, which hints potentially relevant variable with correlation in joint posterior.
+zero, but it's not as clear what other variables should be included. `weight` has wide marginal overlapping zero, which hints potentially relevant variable with correlation in joint posterior.
 
 Looking at th marginals has the problem that correlating variables may
 have marginal posteriors overlapping zero while joint posterior
-typical set does nit include zero. Compare marginals of `height_cm`
-and `height_kg` and their joint distribution.
+typical set does not include zero. Compare, for example, marginals of `height`
+and `height` above to their joint distribution below.
 ```{r}
 mcmc_scatter(as.matrix(fitrhs), pars = c("height", "weight"))+geom_vline(xintercept=0)+geom_hline(yintercept=0)
 ```
@@ -131,7 +139,8 @@ height as two central IVs [independent variables] for estimating body
 fat proportion, and will not subject these two to variable
 selection.'' We subject all variables to selection. 
 ```{r, results='hide'}
-fitrhs_cvvs <- cv_varsel(fitrhs, method='forward', cv_method='LOO', nloo=n)
+fitrhs_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'LOO',
+                         nloo = n, verbose = FALSE)
 ```
 
 The order of the variables:
@@ -152,16 +161,15 @@ We can get a LOO-CV based recommendation for the model size to choose.
 (nv <- fitrhs_cvvs$varsel$ssize)
 ```
 
-Based on this recommendation we continue with three variables
-`abdomen`, `weight`, and `wrist`.  The model selected by Heinze,
-Wallisch, and Dunkler (2018) had seven(!) variables `height_cm`
-(fixed), `abdomen` (fixed), `wrist`, `age`, `neck`, `forearm`, and
-`chest`- Three first variables are same except that projpred selected
-`weight_kg` instead of `height_cm`, so decision to not fix variables
-seems to have been a good choice. Replacement of `height_cm` with
-`weight_kg` is not surprising since these variables do correlate as seen
-also in the above plot of joint posterior of `weight_kg` and
-`height_cm` in the full model.
+Based on this recommendation we continue with three variables `abdomen`,
+`weight`, and `wrist`.  The model selected by Heinze, Wallisch, and
+Dunkler (2018) had seven variables `height` (fixed), `abdomen` (fixed),
+`wrist`, `age`, `neck`, `forearm`, and `chest`- Three first variables
+are same except that projpred selected `weight` instead of `height`, so
+decision to not fix variables seems to have been a good
+choice. Replacement of `height` with `weight` is not surprising since
+these variables do have similar information as seen also in the above
+plot of joint posterior of `weight` and `height` in the full model.
 
 Form the projected posterior for the selected model.
 ```{r}
@@ -175,7 +183,7 @@ mcmc_areas(as.matrix(projrhs),
 ```
 
 So far we have seen that projpred selected a smaller set of variables
-to have very similar predictive performance as the full model. Let's
+which have very similar predictive performance as the full model. Let's
 compare next the stability of the approaches. Heinze, Wallisch, and
 Dunkler (2018) repeated the model selection using 1000 bootstrapped
 datasets. Top 20 models selected have 5--9 variables, the highest
@@ -183,7 +191,10 @@ selection frequency is 3.2%, and cumulative selection frequency for
 top 20 models is 29.5%. These results clearly illustrate instability
 of the selection method they used.
 
-Before looking at the corresponding bootstrap results we can look at the stability of selection process based on the LOO-CV selection paths computed by `cv_varsel'. 
+Before looking at the corresponding bootstrap results we can look at the
+stability of selection process based on the LOO-CV selection paths
+computed by `cv_varsel' (the code to make the following plot will be
+included in projpred package).
 
 ```{r}
 source("projpredpct.R")
@@ -220,10 +231,221 @@ Running `stan_glm` with `prior=hs()` and `cv_varsel` do not take much time when 
 writeLines(readLines("bodyfat_bootstrap.R"))
 ```
 
-From 100 bootstrap iterations model size 2 was selected 99 times and model size 3 once. Model with 2 variables was always `abdomen` and `weight`. Model with 3 variables had also `wrist`. When using the full data, model size 2 was also feasible based on the predictive performance estimates. It is likely that in bootstrap iterations model size 2 was favored as bootstrapped data has less information than the full data. The selection process in projection predictive variable selection is very stable, the variability can be estimated using the fast PSIS-LOO over the selection process, and projection predictive variable selection consistently provides similar predictive performance as the full model.
+In theory LOO-CV should have smaller variation than bootstrap, but in
+practice the bootstrap results are quite similar. From 100 bootstrap
+iterations model size 2 was selected 99 times and model size 3
+once. Model with 2 variables was always `abdomen` and `weight`. Model
+with 3 variables had also `wrist`. When using the full data, model size
+2 was also feasible based on the predictive performance estimates. It is
+likely that in bootstrap iterations model size 2 was favored as
+bootstrapped data has less information than the full data. The selection
+process in projection predictive variable selection is very stable, the
+variability can be estimated using the fast PSIS-LOO over the selection
+process, and projection predictive variable selection consistently
+provides similar predictive performance as the full model.
+
+Heinze, Wallisch, and Dunkler (2017) focused on which variables were
+selected and coefficient estimates, but they did not consider the
+predictive performance of the models. We can estimate the predictive
+performance of the selected model via cross-validation (taking into
+account the effect of the selection process, too). As part of the
+variable selection `cv_varsel' computes also PSIS-LOO estimates for the
+full model and all submodels taking into account the selection
+process. For Bayesian models we would usually report expected log
+predictive density as it assesses the goodnes of the whole predictive
+distribution. Since we now compare results to `lm` we estimate also root
+mean square error (rmse) of mean predictions.
+
+```{r}
+  loormse_full <- sqrt(mean((df$siri-fitrhs_cvvs$varsel$summaries$full$mu)^2))
+  loormse_proj <- sqrt(mean((df$siri-fitrhs_cvvs$varsel$summaries$sub[[nv]]$mu)^2))
+  print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full,1)))
+  print(paste('PSIS-LOO RMSE selected propred model: ', round(loormse_proj,1)))
+```
+
+Since we do get these cross-validation estimates using PSIS-LOO, we do
+not need to run K-fold-CV, but since we need to run K-fold-CV for lm +
+step, we did run also K-fold-CV for projpred selection process. As this
+take some time, hre only the code is shown and we load seprately run
+results. The following code computes 20-fold-CV for the Bayesian model
+and projpred selected model.
+```{r}
+writeLines(readLines("bodyfat_kfoldcv.R"))
+```
+
+We load and print the results
+```{r}
+load(file="bodyfat_kfoldcv.RData")
+print(paste('20-fold-CV RMSE Bayesian full model: ', round(rmse_full,1)))
+print(paste('20-fold-CV RMSE Bayesian projpred model: ', round(rmse_proj,1)))
+```
+
+The results are very close to PSIS-LOO results. Going from the full
+Bayesian model to a smaller projection predictive model, we get
+practically the same 20-fold-CV RMSE, which very good performance
+considering we dropped from 13 covariates to 3 covariates.
+
+Then compute 20-fold-CV for the lm model and step selected model (this
+is fast enough to include in a notebook).
+```{r}
+set.seed(1513306866)
+perm <- sample.int(n)
+K <- 20
+idx <- ceiling(seq(from = 1, to = n, length.out = K + 1))
+bin <- .bincode(perm, breaks = idx, right = FALSE, include.lowest = TRUE)
+lmmuss <- list()
+lmvsmuss <- list()
+lmvsnvss <- list()
+lmvsnlmuss <- list()
+lmvsnlnvss <- list()
+for (k in 1:K) {
+    message("Fitting model ", k, " out of ", K)
+    omitted <- which(bin == k)
+    lmfit_k <- lm(formula, data = df[-omitted,, drop=FALSE],  x=T,y=T)
+    lmmuss[[k]] <- predict(lmfit_k, newdata = df[omitted, , drop = FALSE])
+    sel_k <- step(lm(formula, data = df[-omitted,, drop=FALSE],  x=T,y=T), 
+                direction = "backward",
+                scope = list(upper = formula, 
+                             lower = formula(siri~abdomen+height)),
+                trace = 0)
+    lmvsmuss[[k]] <- predict(sel_k, newdata = df[omitted, , drop = FALSE])
+    lmvsnvss[[k]] <- length(coef(sel_k))-1
+    # compute also a version without fixing abdomen and height
+    selnl_k <- step(lm(formula, data = df[-omitted,, drop=FALSE],  x=T,y=T), 
+                direction = "backward",
+                trace = 0)
+    lmvsnlmuss[[k]] <- predict(selnl_k, newdata = df[omitted, , drop = FALSE])
+    lmvsnlnvss[[k]] <- length(coef(selnl_k))-1
+  }
+lmmus<-unlist(lmmuss)[order(as.integer(names(unlist(lmmuss))))]
+lmvsmus<-unlist(lmvsmuss)[order(as.integer(names(unlist(lmvsmuss))))]
+lmvsnvs <- unlist(lmvsnvss)
+lmvsnlmus<-unlist(lmvsnlmuss)[order(as.integer(names(unlist(lmvsnlmuss))))]
+lmvsnlnvs <- unlist(lmvsnlnvss)
+rmse_lmfull <- sqrt(mean((df$siri-lmmus)^2))
+rmse_lmsel <- sqrt(mean((df$siri-lmvsmus)^2))
+rmse_lmselnl <- sqrt(mean((df$siri-lmvsnlmus)^2))
+```
+```{r}
+  print(paste('20-fold-CV RMSE lm full model: ', round(rmse_lmfull,1)))
+  print(paste('20-fold-CV RMSE lm step selected model: ', round(rmse_lmsel,1)))
+```
+
+We see that simpler maximum likelihood could provide similar 20-fold-CV
+RMSE as much slower Bayesian inference with a fancy regularized
+horseshoe prior. Also the model selection process did not overfit and
+the model selection with step has similar 20-fold-CV RMSE as projpred
+result. Neither of these results are not surprising as $n=251 \gg
+p=13$. However projpred has much more stable selection process and
+produced much smaller models with the same accuracy.
+
+Heinze, Wallisch, and Dunkler (2018) also write ``In routine work,
+however, it is not known a priori which covariates should be included in
+a model, and often we are confronted with the number of candidate
+variables in the range 10-30. This number is often too large to be
+considered in a statistical model.'' I strongly disagree with this as
+there are many statistical models working with more than million
+candidate variables (see, e.g., [Peltola, Marttinen, Vehtari,
+2012)[https://doi.org/10.1371/journal.pone.0049445]). As the bodyfat
+dataset proved to be quite easy in that sense that maximum likelihood
+performed well compared to Bayesian approach, let's make the dataset a
+bit more challenging.
+
+Add 87 variables which are random normal distributed noise and thus are
+not related to bodyfat in any way. We have now total of 100 variables.
+```{r}
+set.seed(1513306866)
+noise <- array(rnorm(87*n), c(n,87))
+dfr<-cbind(df,noise=noise)
+formula2<-paste(formula,"+",paste(colnames(dfr[,20:106]), collapse = "+"))
+```
+
+Given this new dataset compute do variable selection with full data and
+compute 20-fold-CV for the lm model and step selected model.
+```{r}
+sel2 <- step(lm(formula2, data = dfr,  x=T,y=T),
+                direction = "backward",
+                scope = list(upper = formula2, 
+                lower = formula(siri~abdomen+height)),
+                trace = 0)
+lmmuss <- list()
+lmvsmuss <- list()
+lmvsnvss <- list()
+lmvsnlmuss <- list()
+lmvsnlnvss <- list()
+for (k in 1:K) {
+  message("Fitting model ", k, " out of ", K)
+  omitted <- which(bin == k)
+  lmfit_k <- lm(formula2, data = dfr[-omitted,, drop=FALSE],  x=T,y=T)
+  lmmuss[[k]] <- predict(lmfit_k, newdata = dfr[omitted, , drop = FALSE])
+  sel_k <- step(lm(formula2, data = dfr[-omitted,, drop=FALSE],  x=T,y=T), 
+                direction = "backward",
+                scope = list(upper = formula2, 
+                lower = formula(siri~abdomen+height)),
+                trace = 0)
+  lmvsmuss[[k]] <- predict(sel_k, newdata = dfr[omitted, , drop = FALSE])
+  lmvsnvss[[k]] <- length(coef(sel_k))-1
+  selnl_k <- step(lm(formula2, data = dfr[-omitted,, drop=FALSE],  x=T,y=T), 
+                  direction = "backward",
+                  trace = 0)
+  lmvsnlmuss[[k]] <- predict(selnl_k, newdata = dfr[omitted, , drop = FALSE])
+  lmvsnlnvss[[k]] <- length(coef(selnl_k))-1
+}
+lmmus<-unlist(lmmuss)[order(as.integer(names(unlist(lmmuss))))]
+lmvsmus<-unlist(lmvsmuss)[order(as.integer(names(unlist(lmvsmuss))))]
+lmvsnvs <- unlist(lmvsnvss)
+lmvsnlmus<-unlist(lmvsnlmuss)[order(as.integer(names(unlist(lmvsnlmuss))))]
+lmvsnlnvs <- unlist(lmvsnlnvss)
+rmse_lmfull <- sqrt(mean((df$siri-lmmus)^2))
+rmse_lmsel <- sqrt(mean((df$siri-lmvsmus)^2))
+rmse_lmselnl <- sqrt(mean((df$siri-lmvsnlmus)^2))
+```
+```{r}
+print(names(coef(sel2)))
+print(paste('20-fold-CV RMSE lm full model: ', round(rmse_lmfull,1)))
+print(paste('20-fold-CV RMSE lm step selected model: ', round(rmse_lmsel,1)))
+```
+
+Variable selection with `step` has selected 38 variables from which 32
+are random noise. 20-fold-CV RMSE for full lm model and selected model
+are higher than with the original data.
+
+How about then Bayesian model with regularized horseshoe and projection
+predictive variable selection?
+```{r}
+p <- 100
+p0 <- 5 # prior guess for the number of relevant variables
+tau0 <- p0/(p-p0) * 1/sqrt(n)
+hs_prior <- hs(global_scale=tau0)
+fitrhs2 <- stan_glm(formula2, data = dfr, prior = hs_prior, QR = TRUE, 
+                   seed=1513306866, refresh=0)
+fitrhs2_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'LOO',
+                          nloo=n, verbose = FALSE)
+loormse_full2 <- sqrt(mean((df$siri-fitrhs2_cvvs$varsel$summaries$full$mu)^2))
+loormse_proj2 <- sqrt(mean((df$siri-fitrhs2_cvvs$varsel$summaries$sub[[nv]]$mu)^2))
+nv2 <- fitrhs2_cvvs$varsel$ssize
+print(fitrhs2_cvvs$varsel$vind[1:nv2])
+print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full2,1)))
+print(paste('PSIS-LOO RMSE selected projpred model: ', round(loormse_proj2,1)))
+```
+
+Variable selection with `projpred has selected 3 variables from which 0
+are random noise. PSIS-LOO RMSE for the full Bayesian model and the
+selected projpred model are same as with the original data. 
+
+If you don't trust PSIS-LOO you can run the following K-fold-CV to
+get almost the same result.
+```{r}
+writeLines(readLines("bodyfat_kfoldcv2.R"))
+```
+For this notebook this was run separately and the saved results are shown below
+```{r}
+load(file="bodyfat_kfoldcv2.RData")
+print(paste('10-fold-CV RMSE Bayesian full model: ', round(rmse_full,1)))
+print(paste('10-fold-CV RMSE Bayesian projpred model: ', round(rmse_proj,1)))
+```
 
 <br />
-
 
 ### Appendix: Session information
 
