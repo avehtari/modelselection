@@ -114,7 +114,7 @@ mcmc_areas(as.matrix(stan_glmnb), prob_outer = .9999,
 
 Treatment effect is much closer to zero, and senior effect has lot of probability mass on both sides of 0. So it matters, which model we use.
 
-We discuss posterior dependencies in more detail in `colinear` notebook, but for reference we plot also here paired marginals.
+We discuss posterior dependencies in more detail in `collinear` notebook, but for reference we plot also here paired marginals.
 ```{r}
 mcmc_pairs(as.matrix(stan_glmnb),pars = c("(Intercept)","roach1","treatment","senior"))
 ```

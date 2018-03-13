@@ -13,7 +13,7 @@ knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, co
 Bayesian version of Andrew Tyre's "Does model averaging make sense?"
 https://atyre2.github.io/2017/06/16/rebutting_cade.html
 
-Tyre discusses problems in current statistical practices in ecology, focusing in multi-colinearity, model averaging and measuring the relative importance of variables. Tyre's post is commenting a paper http://onlinelibrary.wiley.com/doi/10.1890/14-1639.1/full. In his blog post he uses maximum likelihood and AIC_c. Here we provide a Bayesian approach for handling multicolinearity, model averaging and measuring relative importance of variables using packages rstanarm, bayesplot, loo and projpred. 
+Tyre discusses problems in current statistical practices in ecology, focusing in multi-collinearity, model averaging and measuring the relative importance of variables. Tyre's post is commenting a paper http://onlinelibrary.wiley.com/doi/10.1890/14-1639.1/full. In his blog post he uses maximum likelihood and AIC_c. Here we provide a Bayesian approach for handling multicollinearity, model averaging and measuring relative importance of variables using packages rstanarm, bayesplot, loo and projpred. 
 
 Load libraries.
 ```{r}
@@ -26,7 +26,7 @@ library(bayesplot)
 library(projpred)
 ```
 
-We generate the data used previously to illustrate multi-colinearity problems.
+We generate the data used previously to illustrate multi-collinearity problems.
 ```{r warning=FALSE,message=FALSE}
 # all this data generation is from Cade 2015
 # doesn't matter what this is -- if you use a different number your results will be different from mine.
@@ -74,7 +74,7 @@ Use of QR decomposition greatly improved sampling efficiency and we continue wit
 mcmc_areas(as.matrix(fitg),prob_outer = .99)
 ```
 
-All 95% posterior intervals are overlapping 0 and it seems we have the same colinearity problem as with maximum likelihood estimates.
+All 95% posterior intervals are overlapping 0 and it seems we have the same collinearity problem as with maximum likelihood estimates.
 
 Looking at the pairwise posteriors we can see high correlations
 ```{r}

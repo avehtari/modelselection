@@ -1,5 +1,5 @@
 ---
-title: "Colinear demo with mesquite"
+title: "Collinear demo with mesquite"
 output:
   html_document: default
   html_notebook: default
@@ -10,7 +10,7 @@ output:
 knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
 
-Demonstration of colinearity in multipredictor regression.
+Demonstration of collinearity in multipredictor regression.
 Example of predicting the yields of mesquite bushes comes from [Gelman and Hill (2007)](http://www.stat.columbia.edu/~gelman/arm/). 
 The outcome variable is the total weight (in grams) of photosynthetic material as derived
 from actual harvesting of the bush. The predictor variables are:
@@ -94,7 +94,7 @@ Instead of looking at the tables, it's easier to look at plots
 mcmc_areas(as.matrix(fitg),prob=.5, prob_outer = .95)
 ```
 
-All 95% posterior intervals except for GroupMCD are overlapping 0 and it seems we have serious colinearity problem.
+All 95% posterior intervals except for GroupMCD are overlapping 0 and it seems we have serious collinearity problem.
 
 Looking at the pairwise posteriors we can see high correlations especially between log(CanVol) and log(CanAre).
 ```{r}
