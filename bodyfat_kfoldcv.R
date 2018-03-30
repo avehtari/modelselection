@@ -27,6 +27,7 @@ bin <- .bincode(perm, breaks = idx, right = FALSE, include.lowest = TRUE)
 muss <- list()
 vsmuss <- list()
 vsnvss <- list()
+vsnvss2 <- list()
 for (k in 1:K) {
     message("Fitting model ", k, " out of ", K)
     omitted <- which(bin == k)
@@ -38,7 +39,7 @@ for (k in 1:K) {
     )
     fit_cvvs_k <- cv_varsel(fit_k, method='forward', cv_method='LOO',
                             nloo=nrow(df[-omitted,, drop=FALSE]))
-    nvk <- fit_cvvs_k$varsel$ssize
+    nvk <- suggest_size(fit_cvvs_k,alpha=0.1)
     vsnvss[[k]] <- nvk
     proj_k <- project(fit_cvvs_k, nv = nvk, ns = 4000)
     muss[[k]] <-

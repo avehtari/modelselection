@@ -47,7 +47,7 @@ The excellent performance of the projection predictive variable selection comes 
 See more practical information in [Piironen and Vehtari
 (2017)](https://doi.org/10.1007/s11222-016-9649-y) and theory in
 [Vehtari and Ojanen (2012)](https://doi.org/10.1214/12-SS102).
-The implementation in projpred package is improved version of the
+The implementation in __projpred__ package is improved version of the
 method described by [Piironen and Vehtari
 (2017)](https://doi.org/10.1007/s11222-016-9649-y) with improved model
 size selection and several options to make it faster for larger number
@@ -64,7 +64,7 @@ future for the predictions.
 
 ---
 
-Load libraries.
+Load libraries. This notebook is using a new `suggest_size` function __projpred__ package, which is currently available at [github](https://github.com/stan-dev/projpred).
 ```{r}
 library(here)
 library(rstanarm)
@@ -74,6 +74,7 @@ library(projpred)
 library(bayesplot)
 library(ggplot2)
 library(corrplot)
+library(knitr)
 ```
 
 Load data and scale it. Heinze, Wallisch, and Dunkler (2018) used unscaled data, but we scale it for easier comparison of the effect sizes. In theory this scaling should not have detectable difference in the predictions and I did run the results also without scaling and there is no detectable difference in practice.
@@ -94,7 +95,7 @@ formula <- paste("siri~", paste(pred, collapse = "+"))
 p <- length(pred)
 ```
 
-Correlation structure
+Plot correlation structure
 ```{r}
 corrplot(cor(df[, c(target,pred)]))
 ```
@@ -151,25 +152,20 @@ fitrhs_cvvs$varsel$vind
 And the estimated predictive performance of
 smaller models compared to the full model.
 ```{r}
-varsel_plot(fitrhs_cvvs, stats = c('mlpd', 'mse'), deltas=T)
+varsel_plot(fitrhs_cvvs, stats = c('elpd', 'rmse'), deltas=T)
 ```
 
-Based on the plot 2 or 3 variables and projected posterior provide
+Based on the plot 2 variables and projected posterior provide
 practically the same predictive performance as the full model. 
 We can get a LOO-CV based recommendation for the model size to choose.
 ```{r}
-(nv <- fitrhs_cvvs$varsel$ssize)
+(nv <- suggest_size(fitrhs_cvvs,alpha=0.1))
 ```
 
-Based on this recommendation we continue with three variables `abdomen`,
-`weight`, and `wrist`.  The model selected by Heinze, Wallisch, and
+Based on this recommendation we continue with two variables `abdomen`
+and `weight`.  The model selected by Heinze, Wallisch, and
 Dunkler (2018) had seven variables `height` (fixed), `abdomen` (fixed),
-`wrist`, `age`, `neck`, `forearm`, and `chest`- Three first variables
-are same except that projpred selected `weight` instead of `height`, so
-decision to not fix variables seems to have been a good
-choice. Replacement of `height` with `weight` is not surprising since
-these variables do have similar information as seen also in the above
-plot of joint posterior of `weight` and `height` in the full model.
+`wrist`, `age`, `neck`, `forearm`, and `chest`-
 
 Form the projected posterior for the selected model.
 ```{r}
@@ -182,7 +178,7 @@ mcmc_areas(as.matrix(projrhs),
            pars = c(names(fitrhs_cvvs$varsel$vind[1:nv])))
 ```
 
-So far we have seen that projpred selected a smaller set of variables
+So far we have seen that `projpred` selected a smaller set of variables
 which have very similar predictive performance as the full model. Let's
 compare next the stability of the approaches. Heinze, Wallisch, and
 Dunkler (2018) repeated the model selection using 1000 bootstrapped
@@ -193,8 +189,8 @@ of the selection method they used.
 
 Before looking at the corresponding bootstrap results we can look at the
 stability of selection process based on the LOO-CV selection paths
-computed by `cv_varsel' (the code to make the following plot will be
-included in projpred package).
+computed by `cv_varsel` (the code to make the following plot will be
+included in __projpred__ package).
 
 ```{r}
 source("projpredpct.R")
@@ -231,18 +227,48 @@ Running `stan_glm` with `prior=hs()` and `cv_varsel` do not take much time when 
 writeLines(readLines("bodyfat_bootstrap.R"))
 ```
 
-In theory LOO-CV should have smaller variation than bootstrap, but in
-practice the bootstrap results are quite similar. From 100 bootstrap
-iterations model size 2 was selected 99 times and model size 3
-once. Model with 2 variables was always `abdomen` and `weight`. Model
-with 3 variables had also `wrist`. When using the full data, model size
-2 was also feasible based on the predictive performance estimates. It is
-likely that in bootstrap iterations model size 2 was favored as
-bootstrapped data has less information than the full data. The selection
-process in projection predictive variable selection is very stable, the
-variability can be estimated using the fast PSIS-LOO over the selection
-process, and projection predictive variable selection consistently
-provides similar predictive performance as the full model.
+In theory LOO-CV should have smaller variation than bootstrap, and
+also in practice we see much more variation in the bootstrap
+results. In the basic bootstrap on average only 63% of the original
+data is included, that is, in this case on average the amount of
+unique observations in bootstrapped data is 159 while full data has
+n=251, which explains increased variability in variable
+selection. From 100 bootstrap iterations model size 2 was selected 32
+times and model size 3 28 times.
+
+The bootstrap inclusion frequencies with `projpred` and with
+`step(lm(...)))` (resuls from Heinze, Wallisch, and Dunkler (2018)) are
+shown in the following table
+
+```{r echo = FALSE, results = 'asis'}
+load("bodyfat_bootstrap.RData")
+kable(boot_inclusion, caption = "Bootstrap inclusion probabilities.")
+```
+
+Heinze, Wallisch, and Dunkler (2018) had fixed that abdomen and height are always included. `projpred` selects abdomen always, but height is included only in 35% iterations. Coefficients of weight and height are strongly correlated as shown above, and thus it is not that surprising that `projpred` selects weight instead ogf height. Five most often selected variables by `projpred` in bootstrap iterations are the same five and in the same order as by `cv_varsel` function with full data. Overall `projpred` selects smaller models and thus the bootstrap inclusion probabilities are smaller.
+
+The following table shows top 10 `projpred` models and model selection
+frequencies from bootstrap iterations.
+
+|model     | variables | frequency|
+|:---------|:----------|--------:|
+| 1 |abdomen, weight| 38|
+| 2 |abdomen, wrist| 10|
+| 3 |abdomen, height| 10|
+| 4 |abdomen, height, wrist| 9|
+| 5 |abdomen, weight, wrist| 7|
+| 6 |abdomen, chest, height, wrist| 3|
+| 7 |abdomen, height, neck, wrist| 2|
+| 8 |abdomen, age, wrist| 2|
+| 9 |abdomen, age, height, neck, thigh, wrist| 2|
+| 10|abdomen, chest| 1|
+
+Table: projpred model selection frequencies in bootstrap
+
+Top 10 models selected have 2--5 variables, the highest selection
+frequency is 38%, and the cumulative selection frequency for top 10
+models is 84% and for top 20 models 94%. This demonstrates that
+`projpred` is much more stable.
 
 Heinze, Wallisch, and Dunkler (2017) focused on which variables were
 selected and coefficient estimates, but they did not consider the
@@ -260,15 +286,15 @@ mean square error (rmse) of mean predictions.
   loormse_full <- sqrt(mean((df$siri-fitrhs_cvvs$varsel$summaries$full$mu)^2))
   loormse_proj <- sqrt(mean((df$siri-fitrhs_cvvs$varsel$summaries$sub[[nv]]$mu)^2))
   print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full,1)))
-  print(paste('PSIS-LOO RMSE selected propred model: ', round(loormse_proj,1)))
+  print(paste('PSIS-LOO RMSE selected projpred model: ', round(loormse_proj,1)))
 ```
 
 Since we do get these cross-validation estimates using PSIS-LOO, we do
 not need to run K-fold-CV, but since we need to run K-fold-CV for lm +
-step, we did run also K-fold-CV for projpred selection process. As this
+step, we did run also K-fold-CV for `projpred` selection process. As this
 take some time, hre only the code is shown and we load seprately run
 results. The following code computes 20-fold-CV for the Bayesian model
-and projpred selected model.
+and `projpred` selected model.
 ```{r}
 writeLines(readLines("bodyfat_kfoldcv.R"))
 ```
@@ -283,7 +309,7 @@ print(paste('20-fold-CV RMSE Bayesian projpred model: ', round(rmse_proj,1)))
 The results are very close to PSIS-LOO results. Going from the full
 Bayesian model to a smaller projection predictive model, we get
 practically the same 20-fold-CV RMSE, which very good performance
-considering we dropped from 13 covariates to 3 covariates.
+considering we dropped from 13 covariates to 2 covariates.
 
 Then compute 20-fold-CV for the lm model and step selected model (this
 is fast enough to include in a notebook).
@@ -334,9 +360,9 @@ rmse_lmselnl <- sqrt(mean((df$siri-lmvsnlmus)^2))
 We see that simpler maximum likelihood could provide similar 20-fold-CV
 RMSE as much slower Bayesian inference with a fancy regularized
 horseshoe prior. Also the model selection process did not overfit and
-the model selection with step has similar 20-fold-CV RMSE as projpred
+the model selection with step has similar 20-fold-CV RMSE as `projpred`
 result. Neither of these results are not surprising as $n=251 \gg
-p=13$. However projpred has much more stable selection process and
+p=13$. However `projpred` has much more stable selection process and
 produced much smaller models with the same accuracy.
 
 Heinze, Wallisch, and Dunkler (2018) also write ``In routine work,
@@ -351,7 +377,7 @@ dataset proved to be quite easy in that sense that maximum likelihood
 performed well compared to Bayesian approach, let's make the dataset a
 bit more challenging.
 
-Add 87 variables which are random normal distributed noise and thus are
+We add 87 variables which are random normal distributed noise and thus are
 not related to bodyfat in any way. We have now total of 100 variables.
 ```{r}
 set.seed(1513306866)
@@ -423,15 +449,15 @@ fitrhs2_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'LOO',
                           nloo=n, verbose = FALSE)
 loormse_full2 <- sqrt(mean((df$siri-fitrhs2_cvvs$varsel$summaries$full$mu)^2))
 loormse_proj2 <- sqrt(mean((df$siri-fitrhs2_cvvs$varsel$summaries$sub[[nv]]$mu)^2))
-nv2 <- fitrhs2_cvvs$varsel$ssize
+nv2 <- suggest_size(fitrhs2_cvvs, alpha=0.1)
 print(fitrhs2_cvvs$varsel$vind[1:nv2])
 print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full2,1)))
 print(paste('PSIS-LOO RMSE selected projpred model: ', round(loormse_proj2,1)))
 ```
 
-Variable selection with `projpred has selected 3 variables from which 0
+Variable selection with `projpred` has selected 2 variables from which 0
 are random noise. PSIS-LOO RMSE for the full Bayesian model and the
-selected projpred model are same as with the original data. 
+selected `projpred` model are same as with the original data. 
 
 If you don't trust PSIS-LOO you can run the following K-fold-CV to
 get almost the same result.

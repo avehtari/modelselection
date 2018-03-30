@@ -32,6 +32,9 @@ fitrhs2 <- stan_glm(formula2, data = dfr, prior=rhs_prior, QR=TRUE,
 muss <- list()
 vsmuss <- list()
 vsnvss <- list()
+vsnvss2 <- list()
+vsnvss3 <- list()
+fitcvs <- list()
 for (k in 1:K) {
     message("Fitting model ", k, " out of ", K)
     omitted <- which(bin == k)
@@ -41,15 +44,21 @@ for (k in 1:K) {
         weights = NULL,
         refresh = 0
     )
-    fit_cvvs_k <- cv_varsel(fit_k, method='forward', cv_method='LOO',
-                            verbose = TRUE)
-    (nvk <- fit_cvvs_k$varsel$ssize)
-    vsnvss[[k]] <- nvk
-    fit_cvvs_k$varsel$vind[1:nvk]
-    proj_k <- project(fit_cvvs_k, nv = nvk, ns = 4000)
     muss[[k]] <-
         colMeans(posterior_linpred(fit_k,
                                    newdata = dfr[omitted, , drop = FALSE]))
+    fit_cvvs_k <- cv_varsel(fit_k, method='forward', cv_method='LOO',
+                            nloo = length(which(bin != k)), nv_max=10,
+                            verbose = FALSE)
+    fitcvs[[k]] <- fit_cvvs_k
+}
+for (k in 1:K) {
+    omitted <- which(bin == k)
+    fit_cvvs_k <- fitcvs[[k]]
+    print(nvk <- suggest_size(fit_cvvs_k, alpha=0.1))
+    vsnvss[[k]] <- nvk
+    fit_cvvs_k$varsel$vind[1:nvk]
+    proj_k <- project(fit_cvvs_k, nv = nvk, ns = 4000)
     vsmuss[[k]] <-
         colMeans(proj_linpred(proj_k, xnew = dfr[omitted, , drop = FALSE]))
 }
@@ -57,5 +66,5 @@ mus<-unlist(muss)[order(as.integer(names(unlist(muss))))]
 vsmus<-unlist(vsmuss)[order(as.integer(names(unlist(vsmuss))))]
 vsnvs2 <- unlist(vsnvss)
 rmse_full2 <- sqrt(mean((df$siri-mus)^2))
-rmse_proj2 <- sqrt(mean((df$siri-vsmus)^2))
+(rmse_proj2 <- sqrt(mean((df$siri-vsmus)^2)))
 save(vsnvs2, rmse_full2, rmse_proj2, file = "bodyfat_kfoldcv2.RData")
