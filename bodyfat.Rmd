@@ -275,7 +275,7 @@ selected and coefficient estimates, but they did not consider the
 predictive performance of the models. We can estimate the predictive
 performance of the selected model via cross-validation (taking into
 account the effect of the selection process, too). As part of the
-variable selection `cv_varsel' computes also PSIS-LOO estimates for the
+variable selection `cv_varsel` computes also PSIS-LOO estimates for the
 full model and all submodels taking into account the selection
 process. For Bayesian models we would usually report expected log
 predictive density as it assesses the goodnes of the whole predictive
