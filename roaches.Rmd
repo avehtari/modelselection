@@ -73,25 +73,16 @@ Before looking in more detail where the problem is or fixing it, let's check wha
 
 We form 3 models by dropping each of the covariates out.
 ```{r,warning=FALSE,error=FALSE}
-stan_glmm1p <- stan_glm(y ~ treatment + senior, offset = log(exposure2),
-                      data = roaches, family = poisson, 
-                      prior = normal(0,2.5), prior_intercept = normal(0,5),
-                      chains = 4, cores = 1, seed = 170400963, refresh=-1)
-stan_glmm2p <- stan_glm(y ~ roach1 + senior, offset = log(exposure2),
-                      data = roaches, family = poisson, 
-                      prior = normal(0,2.5), prior_intercept = normal(0,5),
-                      chains = 4, cores = 1, seed = 170400963, refresh=-1)
-stan_glmm3p <- stan_glm(y ~ roach1 + treatment, offset = log(exposure2),
-                      data = roaches, family = poisson, 
-                      prior = normal(0,2.5), prior_intercept = normal(0,5),
-                      chains = 4, cores = 1, seed = 170400963, refresh=-1)
+stan_glmm1p <- update(stan_glmp, formula = y ~ treatment + senior)
+stan_glmm2p <- update(stan_glmp, formula = y ~ roach1 + senior)
+stan_glmm3p <- update(stan_glmp, formula = y ~ roach1 + treatment)
 ```
 
 Although khats were very large we can make a quick test with PSIS-LOO (if the comparison would say there is difference, then PSIS-LOO couldn't be trusted and PSIS-LOO+ or k-fold-CV woul be needed).
 ```{r}
-compare(loo(stan_glmm1p),loop)
-compare(loo(stan_glmm2p),loop)
-compare(loo(stan_glmm3p),loop)
+compare_models(loo(stan_glmm1p),loop)
+compare_models(loo(stan_glmm2p),loop)
+compare_models(loo(stan_glmm3p),loop)
 ```
 Based on this the roaches covariate would be relevant, but although dropping treatment or senior covariate will make a large chnage to elpd, the uncertainty is also large and cross-validation states that these covariates are not necessarily relevant! The posterior marginals are conditional on the model, but cross-validation is more cautios by not using any model for the future data distribution.
 
@@ -125,10 +116,10 @@ Let's check Pareto khat diagnostics
 ```{r}
 (loonb <- loo(stan_glmnb))
 ```
-Only and "bad" khat, which indicates that negative-Binomial would be
+All khat's are ok, which indicates that negative-Binomial would be
 better (for final results it would be good to run PSIS-LOO+). We can also compare Poisson and negative-Binomial.
 ```{r}
-compare(loop,loonb)
+compare_models(loop,loonb)
 ```
 Negative-Binomial model is clearly better than Poisson.
 
@@ -153,9 +144,9 @@ stan_glmm3nb <- update(stan_glmm3p, family = neg_binomial_2)
 ```
 
 ```{r}
-compare(loo(stan_glmm1nb),loonb)
-compare(loo(stan_glmm2nb),loonb)
-compare(loo(stan_glmm3nb),loonb)
+compare_models(loo(stan_glmm1nb),loonb)
+compare_models(loo(stan_glmm2nb),loonb)
+compare_models(loo(stan_glmm3nb),loonb)
 ```
 Roaches1 has clear effect. Treatment effect was visible in posterior, but as discussed in betablockers demo, cross-validation is not good for detecting weak effects. Based on cross-validation senior effect is also not relevant.
 

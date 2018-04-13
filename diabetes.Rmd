@@ -147,15 +147,15 @@ using `stan_glm`.
 
 Load libraries. 
 ```{r, echo=FALSE}
-library(rstanarm)
-options(mc.cores = parallel::detectCores())
-library(loo)
 library(tidyverse)
 library(GGally)
 library(ggplot2)
-library(bayesplot)
 library(caret)
 library(pROC)
+library(bayesplot)
+library(rstanarm)
+options(mc.cores = parallel::detectCores())
+library(loo)
 library(projpred)
 ```
 
@@ -244,21 +244,21 @@ __rstanarm__ supports __loo__ package which implements fast [Pareto smoothed lea
 [1]: https://arxiv.org/abs/1507.04544
 
 ```{r}
-(loo1 <- loo(post1))
+(loo1 <- loo(post1, save_psis = TRUE))
 ```
 
 Above we see that PSIS-LOO result is reliable as all Pareto k estimates are small (k< 0.5)
 
 Compute baseline result without covariates.
 ```{r}
-post0 <- stan_glm(outcome ~ 1, data = diabetes, family = binomial(link = "logit"), seed = 14124869)
+post0 <- update(post1, formula = outcome ~ 1, QR = FALSE)
 ```
 Compare to baseline
 ```{r}
 (loo0 <- loo(post0))
 ```
 ```{r}
-compare(loo0,loo1)
+rstanarm::compare_models(loo0,loo1)
 ```
 Covariates contain clearly useful information for predictions.
 
@@ -272,27 +272,22 @@ pred <- colMeans(preds)
 pr <- as.integer(pred >= 0.5)
    
 # confusion matrix
-confusionMatrix(pr, y)[2:3]
+caret::confusionMatrix(as.factor(pr), y)[2:3]
 # posterior classification accuracy
-round(mean(xor(pr,as.integer(y))),3)
+round(mean(xor(pr,as.integer(y==0))),3)
 # posterior balanced classification accuracy
-round((mean(xor(pr[y==0]>0.5,as.integer(y[y==0])))+mean(xor(pr[y==1]>0.5,as.integer(y[y==1]))))/2,3)
+round((mean(xor(pr[y==0]>0.5,as.integer(y[y==0])))+mean(xor(pr[y==1]<0.5,as.integer(y[y==1]))))/2,3)
 ```
 
 The predictive performance above is overoptimistic. To better estimate the predictive performance for new not yet seen data we next use leave-one-out cross-validation:
 
 ```{r}
-# PSIS-LOO weights
-log_lik=log_lik(post1, parameter_name = "log_lik")
-psis=psislw(-log_lik)
-#plot(psis$pareto_k)
-#plot(psis$lw_smooth[,1],linpred[,1])
 # LOO predictive probabilities
-ploo=E_loo(preds,psis$lw_smooth)
+ploo=E_loo(preds, type="mean", loo1$psis_object, log_ratios = -log_lik(post1))$value
 # LOO classification accuracy
-round(mean(xor(ploo>0.5,as.integer(y))),3)
+round(mean(xor(ploo>0.5,as.integer(y==0))),3)
 # LOO balanced classification accuracy
-round((mean(xor(ploo[y==0]>0.5,as.integer(y[y==0])))+mean(xor(ploo[y==1]>0.5,as.integer(y[y==1]))))/2,2)
+round((mean(xor(ploo[y==0]>0.5,as.integer(y[y==0])))+mean(xor(ploo[y==1]<0.5,as.integer(y[y==1]))))/2,2)
 ```
 
 In this case it happens that all predicted classes are same as with posterior predictions. We can see the small difference in posterior predictive probabilities and LOO proabilities:
@@ -347,7 +342,7 @@ We compute LOO also for the model with Horseshoe prior. Expected log predictive 
 ```
 
 ```{r}
-compare(loo1,loo2)
+rstanarm::compare_models(loo1,loo2)
 ```
 
 Looking at the pairwise posteriors we can see that, for example, posteriors for age and pregnancies effects are correlating and thus we can't relay on infering variable relevance by looking at the marginal distributions.
@@ -358,7 +353,7 @@ bayesplot::mcmc_pairs(as.matrix(post2),pars = c("pregnancies","age"))
 
 If projpred package is installed, we can do variable selection.
 ```{r, results='hide'}
-varsel2 <- cv_varsel(post2, method='forward')
+varsel2 <- cv_varsel(post2, method='forward', nloo = n)
 ```
 
 ```{r}
@@ -367,7 +362,7 @@ varsel2$varsel$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(varsel2, stats = c('mlpd', 'pctcorr'), deltas=T)
+varsel_plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=F)
 ```
 
 And we get a LOO based recommendation for the model size to choose

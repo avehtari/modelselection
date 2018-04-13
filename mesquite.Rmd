@@ -110,7 +110,7 @@ From the joint posterior scatter plot, we can see that 0 is far away fron the ty
 
 In case of even more variables with some being relevant and some irrelevant, it will be difficult to analyse joint posterior to see which variables are jointly relevant. We can easily test whether any of the covariates are useful by using cross-validation to compare to a null model,
 ```{r}
-fitg0 <- stan_glm(formula = log(LeafWt) ~ 1, data = dat, refresh=0)
+fitg0 <- update(fitg, formula = log(LeafWt) ~ 1, QR=FALSE)
 ```
 
 We compute leave-one-out cross-validation elpd's using PSIS-LOO.
@@ -125,7 +125,7 @@ The model with variables has one bad k value. We can fix that by computing the c
 
 And then we can compare the models.
 ```{r}
-compare(loog0,loog)
+compare_models(loog0,loog)
 ```
 Based on cross-validation covariates together contain significant information to improve predictions.
 
@@ -137,7 +137,7 @@ The paper http://link.springer.com/article/10.1007/s11222-016-9649-y also shows 
 
 We make the projective predictive variable selection using the previous full model. A fast leave-one-out cross-validation approach http://link.springer.com/article/10.1007/s11222-016-9696-4 is used to choose the model size.
 ```{r, results='hide'}
-fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO')
+fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO', nloo = nrow(dat))
 ```
 
 ```{r}
@@ -146,7 +146,7 @@ fitg_cv$varsel$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('mlpd', 'mse'), deltas=T)
+varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=T)
 ```
 
 And we get a loo-cv based recommendation for the model size to choose
@@ -161,11 +161,10 @@ projg <- project(fitg_cv, nv = fitg_cv$varsel$ssize, ns = 4000)
 round(colMeans(as.matrix(projg)),1)
 round(posterior_interval(as.matrix(projg)),1)
 ```
-This looks good as the true values are intercept=-5.8, x2=15.2, x1=6.3.
 
 ```{r}
 mcmc_areas(as.matrix(projg), 
-           pars = c('(Intercept)', names(fitg_cv$varsel$vind[1:fitg_cv$varsel$ssize])), prob_outer=0.95)
+           pars = c('(Intercept)', names(fitg_cv$varsel$vind[1:fitg_cv$varsel$ssize])), prob_outer=0.99)
 ```
 
 

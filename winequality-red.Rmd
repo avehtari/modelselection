@@ -64,14 +64,14 @@ fitg0 <- stan_glm(quality ~ 1, data = df, seed=170701694, refresh=0)
 ```{r}
 (loog <- loo(fitg))
 (loog0 <- loo(fitg0))
-compare(loog0,loog)
+compare_models(loog0,loog)
 ```
 
 Based on cross-validation covariates together have a high predictive power. If we need just the predictions we can stop here, but if we want to learn more about the relevance of the covariates we can continue with variable selection.
 
 We make the projective predictive variable selection using projpred package. A fast leave-one-out cross-validation approach http://link.springer.com/article/10.1007/s11222-016-9696-4 is used to choose the model size.
 ```{r, results='hide'}
-fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO')
+fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO', n_loo=nrow(df))
 ```
 
 ```{r}
@@ -80,7 +80,7 @@ fitg_cv$varsel$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('mlpd', 'mse'), deltas=T)
+varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=T)
 ```
 
 Three or four variables seems to be needed to get the same performance as the full model.
@@ -112,13 +112,14 @@ fitrhs <- stan_glm(quality ~ ., data = df, prior=hs(), seed=170701694, refresh=0
 ```{r}
 mcmc_areas(as.matrix(fitrhs),prob_outer = .95)
 ```
-MAny of the variables are shrunk more towards 0, but still based on these marginals it is not as easy to select the most useful variables as it is with projpred.
+
+Many of the variables are shrunk more towards 0, but still based on these marginals it is not as easy to select the most useful variables as it is with projpred.
 
 The posteriors with normal and regularized horseshoe priors are clearly different, but does this have an effect to the predictions? In case of collinearity prior may have a strong effect on posterior, but a weak effect on posterior predictions. We can use loo to compare
 
 ```{r}
 (loorhs <- loo(fitrhs))
-compare(loog,loorhs)
+compare_models(loog,loorhs)
 ```
 There is no difference in predictive performance and thus we don't need to repeat the projpred variable selection for the model with regularized horseshoe prior.
 

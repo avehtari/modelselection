@@ -50,7 +50,6 @@ Tyre: "So there is a near perfect negative correlation between the things sage g
 
 From this point onwards we switch to Bayesian approach. The rstanarm package provides stan_glm which accepts same arguments as glm, but makes full Bayesian inference using Stan (Hamiltonian Monte Carlo No-U-Turn-sampling). By default a weakly informative Gaussian prior is used for weights.
 ```{r}
-options(mc.cores = 4)
 fitg <- stan_glm(y ~ x1 + x2 + x3 + x4, data = df, na.action = na.fail, family=poisson(), seed=170402030)
 ```
 Let's look at the summary:
@@ -95,7 +94,7 @@ fitg0 <- stan_glm(y ~ 1, data = df, na.action = na.fail, family=poisson(), seed=
 ```{r}
 (loog <- loo(fitg))
 (loog0 <- loo(fitg0))
-compare(loog0,loog)
+compare_models(loog0,loog)
 ```
 Based on cross-validation covariates together contain significant information to improve predictions.
 
@@ -116,7 +115,7 @@ fitg_cv$varsel$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('mlpd', 'mse'), deltas=T)
+varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=T)
 ```
 
 And we get a loo-cv based recommendation for the model size to choose
