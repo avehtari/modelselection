@@ -64,7 +64,7 @@ future for the predictions.
 
 ---
 
-Load libraries. This notebook is using a new `suggest_size` function __projpred__ package, which is currently available at [github](https://github.com/stan-dev/projpred).
+Load libraries.
 ```{r}
 library(here)
 library(rstanarm)

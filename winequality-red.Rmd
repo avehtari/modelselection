@@ -86,13 +86,13 @@ varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=T)
 Three or four variables seems to be needed to get the same performance as the full model.
 We can get a loo-cv based recommendation for the model size to choose.
 ```{r}
-fitg_cv$varsel$ssize
+(nv <- suggest_size(fitg_cv,alpha=0.1))
 ```
 projpred recommends to use four variables: alcohol, volatile.acidity, sulphates, and chlorides.
 
 Next we form the projected posterior for the chosen model. This projected model can be used in the future to make predictions by using only the selected variables.
 ```{r}
-projg <- project(fitg_cv, nv = 4, ns = 4000)
+projg <- project(fitg_cv, nv = nv, ns = 4000)
 round(colMeans(as.matrix(projg)),1)
 round(posterior_interval(as.matrix(projg)),1)
 ```
@@ -100,7 +100,7 @@ round(posterior_interval(as.matrix(projg)),1)
 The marginals of projected posteriors look like this.
 ```{r}
 mcmc_areas(as.matrix(projg), 
-           pars = c('(Intercept)', names(fitg_cv$varsel$vind[1:4])))
+           pars = c('(Intercept)', names(fitg_cv$varsel$vind[1:nv])))
 ```
 
 

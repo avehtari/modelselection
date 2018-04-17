@@ -367,17 +367,17 @@ varsel_plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=F)
 
 And we get a LOO based recommendation for the model size to choose
 ```{r}
-varsel2$varsel$ssize
+(nv <- suggest_size(varsel2,alpha=0.1))
 ```
 Next we form the projected posterior for the chosen model.
 ```{r}
-proj2 <- project(varsel2, nv = varsel2$varsel$ssize, ns = 4000)
+proj2 <- project(varsel2, nv = nv, ns = 4000)
 round(colMeans(as.matrix(proj2)),1)
 round(posterior_interval(as.matrix(proj2)),1)
 ```
 ```{r}
 mcmc_areas(as.matrix(proj2), , prob = 0.95, prob_outer = 1,
-           pars = c('(Intercept)', names(varsel2$varsel$vind[1:varsel2$varsel$ssize])))
+           pars = c('(Intercept)', names(varsel2$varsel$vind[1:nv])))
 ```
 
 The projected posterior can be made predictions in the future (with no need to measure the left out variables).

@@ -120,13 +120,13 @@ varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=T)
 
 And we get a loo-cv based recommendation for the model size to choose
 ```{r}
-fitg_cv$varsel$ssize
+(nv <- suggest_size(fitg_cv,alpha=0.1))
 ```
 We see that 2 variables is enough to get the same as with all 4 variables.
 
 Next we form the projected posterior for the chosen model.
 ```{r}
-projg <- project(fitg_cv, nv = 2, ns = 4000)
+projg <- project(fitg_cv, nv = nv, ns = 4000)
 round(colMeans(as.matrix(projg)),1)
 round(posterior_interval(as.matrix(projg)),1)
 ```

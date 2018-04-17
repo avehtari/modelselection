@@ -87,13 +87,13 @@ varsel_plot(fitrhs_cv, stats = c('elpd', 'rmse'), deltas=T)
 
 And we get a loo-cv based recommendation for the model size to choose
 ```{r}
-fitrhs_cv$varsel$ssize
+(nv <- suggest_size(fitrhs_cv,alpha=0.1))
 ```
 We see that projpred agrees that no variables have useful information.
 
 Next we form the projected posterior for the chosen model.
 ```{r}
-projrhs <- project(fitrhs_cv, nv = 0, ns = 4000)
+projrhs <- project(fitrhs_cv, nv = nv, ns = 4000)
 round(colMeans(as.matrix(projrhs)),1)
 round(posterior_interval(as.matrix(projrhs)),1)
 ```
@@ -150,13 +150,13 @@ Only one variable seems to be needed to get the same performance as the full mod
 
 And we get a loo-cv based recommendation for the model size to choose
 ```{r}
-fitrhs_cv$varsel$ssize
+(nv <- suggest_size(fitrhs_cv,alpha=0.1))
 ```
 projpred recommends to use just one variable.
 
 Next we form the projected posterior for the chosen model.
 ```{r}
-projrhs <- project(fitrhs_cv, nv = 1, ns = 4000)
+projrhs <- project(fitrhs_cv, nv = nv, ns = 4000)
 round(colMeans(as.matrix(projrhs)),1)
 round(posterior_interval(as.matrix(projrhs)),1)
 ```
