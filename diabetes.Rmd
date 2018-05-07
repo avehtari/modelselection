@@ -6,10 +6,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%', cache=TRUE)
 ```
-
-# Bayesian Logistic Regression with rstanarm 
 
 Authors: Jonah Gabry, Ben Goodrich and Aki Vehtari.
 
@@ -50,7 +48,7 @@ __rstanarm__ Package"][2]. This vignette focuses on Step 1 when the likelihood i
 the product of conditionally independent binomial distributions (possibly with
 only one trial per observation).
 
-# Likelihood
+## Likelihood
 
 For a binomial GLM the likelihood for one observation $y$ can be written as a
 conditionally binomial PMF
@@ -120,7 +118,7 @@ and/or a distribution with heavier tails than the normal like the Student t
 distribution. __Step 1__ in the "How to Use the __rstanarm__ Package" vignette 
 discusses one such example.
 
-# Posterior
+## Posterior
 
 With independent prior distributions, the joint posterior distribution for
 $\alpha$ and $\boldsymbol{\beta}$ is proportional to the product of the priors 
@@ -134,7 +132,7 @@ $$f\left(\alpha,\boldsymbol{\beta} | \mathbf{y},\mathbf{X}\right) \propto
   
 This is posterior distribution that `stan_glm` will draw from when using MCMC.
   
-# Logistic Regression Example
+# Logistic Regression
 
 When the logit link function is used the model is often referred to as a 
 logistic regression model (the inverse logit function is the CDF of the standard
@@ -145,13 +143,14 @@ using `stan_glm`.
 
 [2]: https://cran.r-project.org/web/packages/rstanarm/vignettes/rstanarm.html
 
-Load libraries. 
-```{r, echo=FALSE}
+# Setup
+
+## Load libaries
+```{r}
 library(tidyverse)
 library(GGally)
 library(ggplot2)
 library(caret)
-library(pROC)
 library(bayesplot)
 library(rstanarm)
 options(mc.cores = parallel::detectCores())
@@ -159,7 +158,7 @@ library(loo)
 library(projpred)
 ```
 
-
+## Diabetes data
 ```{r}
 # file preview shows a header row
 diabetes <- read.csv("diabetes.csv", header = TRUE)
@@ -199,11 +198,12 @@ x <- model.matrix(outcome ~ . - 1, data = diabetes)
 y <- diabetes$outcome
 ```
 
-A Bayesian version of logistic regression model
-can be estimated using the `stan_glm` function. Here we'll use a Student t 
-prior with 7 degrees of freedom and a scale of 2.5, which, as discussed above,
-is a reasonable default prior when coefficients should be close to zero but 
-have some chance of being large. 
+# A Bayesian logistic regression model
+
+A Bayesian logistic regression model can be estimated using the `stan_glm` function. 
+Here we'll use a Student t  prior with 7 degrees of freedom and a scale of 2.5, which,
+as discussed above, is a reasonable default prior when coefficients should be close to
+zero but have some chance of being large. 
 
 The `formula`, `data` and `family` arguments to `stan_glm` are specified in
 exactly the same way as for `glm`. We've also added the `seed` 
@@ -239,6 +239,8 @@ model see Step 2 in the ["How to Use the __rstanarm__ Package"][1] vignette.
 
 [1]: https://cran.r-project.org/web/packages/rstanarm/vignettes/rstanarm.html
 
+# Leave-one-out cross-validation
+
 __rstanarm__ supports __loo__ package which implements fast [Pareto smoothed leave-one-out cross-validation (PSIS-LOO)][1] to compute expected log predictive density (elpd):
 
 [1]: https://arxiv.org/abs/1507.04544
@@ -249,6 +251,8 @@ __rstanarm__ supports __loo__ package which implements fast [Pareto smoothed lea
 
 Above we see that PSIS-LOO result is reliable as all Pareto k estimates are small (k< 0.5)
 
+# Comparison to a baseline model
+
 Compute baseline result without covariates.
 ```{r}
 post0 <- update(post1, formula = outcome ~ 1, QR = FALSE)
@@ -258,9 +262,11 @@ Compare to baseline
 (loo0 <- loo(post0))
 ```
 ```{r}
-rstanarm::compare_models(loo0,loo1)
+compare_models(loo0,loo1)
 ```
 Covariates contain clearly useful information for predictions.
+
+# Other predictive performance measures
 
 For more easily interpretable predictive performance measures, we next compute posterior predictive probabilities and use them to compute classification errors, ROC and AUC (some of these will be later included in loo package).
 
@@ -272,20 +278,20 @@ pred <- colMeans(preds)
 pr <- as.integer(pred >= 0.5)
    
 # confusion matrix
-caret::confusionMatrix(as.factor(pr), y)[2:3]
+caret::confusionMatrix(as.factor(as.numeric(pr>0.5)), y)[2]
 # posterior classification accuracy
-round(mean(xor(pr,as.integer(y==0))),3)
+round(mean(xor(pr,as.integer(y==0))),2)
 # posterior balanced classification accuracy
-round((mean(xor(pr[y==0]>0.5,as.integer(y[y==0])))+mean(xor(pr[y==1]<0.5,as.integer(y[y==1]))))/2,3)
+round((mean(xor(pr[y==0]>0.5,as.integer(y[y==0])))+mean(xor(pr[y==1]<0.5,as.integer(y[y==1]))))/2,2)
 ```
 
 The predictive performance above is overoptimistic. To better estimate the predictive performance for new not yet seen data we next use leave-one-out cross-validation:
 
 ```{r}
 # LOO predictive probabilities
-ploo=E_loo(preds, type="mean", loo1$psis_object, log_ratios = -log_lik(post1))$value
+ploo=E_loo(preds, loo1$psis_object, type="mean", log_ratios = -log_lik(post1))$value
 # LOO classification accuracy
-round(mean(xor(ploo>0.5,as.integer(y==0))),3)
+round(mean(xor(ploo>0.5,as.integer(y==0))),2)
 # LOO balanced classification accuracy
 round((mean(xor(ploo[y==0]>0.5,as.integer(y[y==0])))+mean(xor(ploo[y==1]<0.5,as.integer(y[y==1]))))/2,2)
 ```
@@ -296,17 +302,21 @@ In this case it happens that all predicted classes are same as with posterior pr
 plot(pred,ploo)
 ```
 
-We can also sompute ROC and AUC using posterior or LOO probabilities.
+# Calibration of predictions
+
+We can also examine calibrations using posterior or LOO predictive probabilities.
 
 ```{r}
-# compute AUCs
-plot.roc(y,pred,percent=TRUE,col="#1c61b6",  print.auc=TRUE)
-plot.roc(y,ploo,percent=TRUE,col="#008600",  print.auc=TRUE, print.auc.y=40, add=TRUE)
-
-legend("bottomright", legend=c("Posterior ROC", "LOO ROC"), col=c("#1c61b6", "#008600"), lwd=2)
+calPlotData<-calibration(y ~ pred + loopred, 
+                         data = data.frame(pred=1-pred,loopred=1-ploo,y=y), cuts=10)
+ggplot(calPlotData, auto.key = list(columns = 2))
 ```
 
-Alternative horseshoe prior on weights. In this example, with n&gt;&gt;p the difference is small, and thus we don't expect much difference with a different prior and horseshoe prior is usually more useful for n&lt;p. 
+From the calibration plot we see that the model is otherwise calibrated except that there is an excess of events for cases that have very low predicted probability. 
+
+# Alternative horseshoe prior on weights. 
+
+In this example, with n&gt;&gt;p the difference is small, and thus we don't expect much difference with a different prior and horseshoe prior is usually more useful for n&lt;p. 
 
 The global scale parameter for horseshoe prior is chosen as recommended by Juho Piironen and Aki Vehtari (2017). On the Hyperprior Choice for the Global Shrinkage Parameter in the Horseshoe Prior. *Journal of Machine Learning Research: Workshop and Conference Proceedings (AISTATS 2017 Proceedings)*, accepted for publication. [arXiv preprint arXiv:1610.05559][1] .
 
@@ -350,8 +360,9 @@ Looking at the pairwise posteriors we can see that, for example, posteriors for 
 bayesplot::mcmc_pairs(as.matrix(post2),pars = c("pregnancies","age"))
 ```
 
+# Projection predictive variable selection
 
-If projpred package is installed, we can do variable selection.
+Next we do variable selection using  projection predictive variable selection
 ```{r, results='hide'}
 varsel2 <- cv_varsel(post2, method='forward', nloo = n)
 ```
@@ -367,7 +378,7 @@ varsel_plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=F)
 
 And we get a LOO based recommendation for the model size to choose
 ```{r}
-(nv <- suggest_size(varsel2,alpha=0.1))
+(nv <- suggest_size(varsel2,alpha=0.2))
 ```
 Next we form the projected posterior for the chosen model.
 ```{r}
