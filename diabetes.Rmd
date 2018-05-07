@@ -308,7 +308,8 @@ We can also examine calibrations using posterior or LOO predictive probabilities
 
 ```{r}
 calPlotData<-calibration(y ~ pred + loopred, 
-                         data = data.frame(pred=1-pred,loopred=1-ploo,y=y), cuts=10)
+                         data = data.frame(pred=pred,loopred=ploo,y=y), 
+                         cuts=10, class="1")
 ggplot(calPlotData, auto.key = list(columns = 2))
 ```
 
@@ -392,6 +393,34 @@ mcmc_areas(as.matrix(proj2), , prob = 0.95, prob_outer = 1,
 ```
 
 The projected posterior can be made predictions in the future (with no need to measure the left out variables).
+
+# Additive non-linear model
+
+We also test an additive non-linear model using __stan_gamm4__.
+
+```{r}
+post3 <- stan_gamm4(outcome ~ s(glucose) + s(age) + s(bmi), data = diabetes,
+                 family = binomial(link = "logit"), 
+                 seed = 14124869)
+```
+```{r}
+(loo3 <- loo(post3, save_psis = TRUE))
+compare_models(loo1, loo3)
+```
+Based on LOO, non-linear model might be better, but the difference is not big.
+
+Let's look at the calibration.
+```{r}
+gammpreds <- posterior_linpred(post3, transform=TRUE)
+gammpred <- colMeans(gammpreds)
+loogammpred=E_loo(gammpreds, loo3$psis_object, type="mean", log_ratios = -log_lik(post3))$value
+calPlotData<-calibration(y ~ loopred + loogammpred, 
+                         data = data.frame(loopred=ploo,loogammpred=loogammpred,y=y),
+                         cuts=10, class="1")
+ggplot(calPlotData, auto.key = list(columns = 2))
+```
+
+Non-linear model appears to be better calibrated, although the difference is small.
 
 <br />
 
