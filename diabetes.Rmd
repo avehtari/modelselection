@@ -210,7 +210,7 @@ exactly the same way as for `glm`. We've also added the `seed`
 (for reproducibility). You can read about other possible arguments in the
 `stan_glm` documentation (`help(stan_glm, package = 'rstanarm')`).
 
-```{r}
+```{r, results='hide'}
 t_prior <- student_t(df = 7, location = 0, scale = 2.5)
 post1 <- stan_glm(outcome ~ ., data = diabetes,
                  family = binomial(link = "logit"), 
@@ -323,7 +323,7 @@ The global scale parameter for horseshoe prior is chosen as recommended by Juho 
 
  [1]: http://arxiv.org/abs/1610.05559
 
-```{r}
+```{r, results='hide'}
 p0 <- 2 # prior guess for the number of relevant variables
 tau0 <- p0/(p-p0) * 1/sqrt(n)
 hs_prior <- hs(df=1, global_df=1, global_scale=tau0)
@@ -398,7 +398,7 @@ The projected posterior can be made predictions in the future (with no need to m
 
 We also test an additive non-linear model using __stan_gamm4__.
 
-```{r}
+```{r, results='hide'}
 post3 <- stan_gamm4(outcome ~ s(glucose) + s(age) + s(bmi), data = diabetes,
                  family = binomial(link = "logit"), 
                  seed = 14124869)
@@ -410,7 +410,7 @@ compare_models(loo1, loo3)
 Based on LOO, non-linear model might be better, but the difference is not big.
 
 Let's look at the calibration.
-```{r}
+```{r, results='hide'}
 gammpreds <- posterior_linpred(post3, transform=TRUE)
 gammpred <- colMeans(gammpreds)
 loogammpred=E_loo(gammpreds, loo3$psis_object, type="mean", log_ratios = -log_lik(post3))$value
