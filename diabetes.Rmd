@@ -304,7 +304,7 @@ plot(pred,ploo)
 
 # Calibration of predictions
 
-We can also examine calibrations using posterior or LOO predictive probabilities.
+We can also examine calibration of the posterior and LOO predictive probabilities compared to observed binned event rates. We sort the predicted probabilities in ascending order, bin the corresponding binary observations and plot the mean and uncertainty interval based on binomial distribution.
 
 ```{r}
 calPlotData<-calibration(y ~ pred + loopred, 
@@ -313,7 +313,7 @@ calPlotData<-calibration(y ~ pred + loopred,
 ggplot(calPlotData, auto.key = list(columns = 2))
 ```
 
-From the calibration plot we see that the model is otherwise calibrated except that there is an excess of events for cases that have very low predicted probability. 
+From the above calibration plot we see that the model is otherwise calibrated except that for the observations with highest 10% of the predicted probabilities there are less events than predicted.  
 
 # Alternative horseshoe prior on weights. 
 
@@ -420,7 +420,7 @@ calPlotData<-calibration(y ~ loopred + loogammpred,
 ggplot(calPlotData, auto.key = list(columns = 2))
 ```
 
-Non-linear model appears to be better calibrated, although the difference is small.
+Non-linear model appears to be  able to partially model the saturating high probabilities and is thus slighlty better calibrated.
 
 <br />
 
