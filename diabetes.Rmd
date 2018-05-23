@@ -262,7 +262,7 @@ Compare to baseline
 (loo0 <- loo(post0))
 ```
 ```{r}
-compare_models(loo0,loo1)
+rstanarm::compare_models(loo0,loo1)
 ```
 Covariates contain clearly useful information for predictions.
 
@@ -405,7 +405,7 @@ post3 <- stan_gamm4(outcome ~ s(glucose) + s(age) + s(bmi), data = diabetes,
 ```
 ```{r}
 (loo3 <- loo(post3, save_psis = TRUE))
-compare_models(loo1, loo3)
+rstanarm::compare_models(loo1, loo3)
 ```
 Based on LOO, non-linear model might be better, but the difference is not big.
 
