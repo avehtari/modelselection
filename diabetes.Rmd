@@ -315,6 +315,13 @@ ggplot(calPlotData, auto.key = list(columns = 2))
 
 From the above calibration plot we see that the model is otherwise calibrated except that for the observations with highest 10% of the predicted probabilities there are less events than predicted.  
 
+The above calibration plot is using independent bins for the observations. The following uses a spline fit for smoothing (with narrower uncertainties).
+```{r}
+library(splines)
+library(MASS)
+ggplot(data = data.frame(pred=pred,loopred=ploo,y=as.numeric(y)-1), aes(x=loopred, y=y)) + stat_smooth(method='glm', formula = y ~ ns(x, 5), fullrange=TRUE) + geom_abline(linetype = 'dashed') + ylab(label = "Observed") + xlab(label = "Predicted (LOO)") + geom_jitter(height=0.03, width=0) + scale_y_continuous(breaks=seq(0,1,by=0.1)) + xlim(c(0,1))
+```
+
 # Alternative horseshoe prior on weights. 
 
 In this example, with n&gt;&gt;p the difference is small, and thus we don't expect much difference with a different prior and horseshoe prior is usually more useful for n&lt;p. 
@@ -421,6 +428,11 @@ ggplot(calPlotData, auto.key = list(columns = 2))
 ```
 
 Non-linear model appears to be  able to partially model the saturating high probabilities and is thus slighlty better calibrated.
+
+The above calibration plot is using independent bins for the observations. The following uses a spline fit for smoothing (with narrower uncertainties).
+```{r}
+ggplot(data = data.frame(loopred=loogammpred,y=as.numeric(y)-1), aes(x=loopred, y=y)) + stat_smooth(method='glm', formula = y ~ ns(x, 5), fullrange=TRUE) + geom_abline(linetype = 'dashed') + ylab(label = "Observed") + xlab(label = "Predicted (LOO)") + geom_jitter(height=0.03, width=0) + scale_y_continuous(breaks=seq(0,1,by=0.1)) + xlim(c(0,1))
+```
 
 <br />
 
