@@ -44,7 +44,7 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
   * [winequality-red](https://rawgit.com/avehtari/modelselection_tutorial/master/winequality-red.html)
   * [bodyfat](https://rawgit.com/avehtari/modelselection_tutorial/master/bodyfat.html)
   * See also [projpred quick start vignette](https://rawgit.com/stan-dev/projpred/master/vignettes/quickstart.html)
-* [LOO-R^2](../bayes_R2/bayes_R2.html)
+* [LOO-R^2](https://avehtari.github.io/bayes_R2/bayes_R2.html)
 
 ### See also
 * [When LOO and other cross-validation approaches are valid](http://andrewgelman.com/2018/08/03/loo-cross-validation-approaches-valid/)
