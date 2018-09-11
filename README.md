@@ -1,18 +1,21 @@
-## Tutorial on model assesment, selection and inference after selection
+## Model assesment, selection and inference after selection
 
 Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstanarm), [rstan](https://cran.r-project.org/package=rstan), [bayesplot](https://cran.r-project.org/package=bayesplot), [loo](https://cran.r-project.org/package=loo), [projpred](https://cran.r-project.org/package=projpred). 
 
-### Videos
+### Talks
 
-* [Model selection tutorial at StanCon 2018 Asilomar](https://www.youtube.com/watch?v=FUROJM3u5HQ)
-* [Regularized horseshoe talk at StanCon 2018 Asilomar](https://www.youtube.com/watch?v=umk7eOkt5k8) (regularized horseshoe video and slides are included as RHS is a good prior when we assume that some of the covariates are irrelevant)
+* Model assessmen and model selection aka Basics of cross-validation tutorial at StanCon 2018 Helsinki
+  - [Slides](Vehtari_StanHEL_CV.pdf)
+  - [Video](https://www.youtube.com/watch?v=hpr8pxqkCH8&t=0s&list=PLuwyh42iHquU4hUBQs20hkBsKSMrp6H0J&index=9)
+  - [Code for figures](cv_basics.html)
+* Regularized horseshoe talk at StanCon 2018 Asilomar
+  - [Slides](regularizedhorseshoe_slides.pdf)
+  - [Video](https://www.youtube.com/watch?v=umk7eOkt5k8)
+* Model selection tutorial at StanCon 2018 Asilomar
+  - [Slides](modelselection_tutorial_slides.pdf)
+  - [Video](https://www.youtube.com/watch?v=FUROJM3u5HQ)
 
-### Slides
-
-* [Model selection tutorial slides](modelselection_tutorial_slides.pdf)
-* [Regularized horseshoe slides](regularizedhorseshoe_slides.pdf)
-
-### Outline of the tutorial and links to notebooks
+### Outline of the StanCon 2018 Asilomar tutorial and links to notebooks
 * Basics of predictive performance estimation
 * When cross-validation is not needed
   * Simple model we trust - [betablockers](https://rawgit.com/avehtari/modelselection_tutorial/master/betablockers.html)
@@ -23,22 +26,31 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * Cross-validation and hierarchical models
 * When cross-validation is not enough
   * large number of models - [diabetes](https://rawgit.com/avehtari/modelselection_tutorial/master/diabetes.html)
-* loo 2.0 (coming soon)
+* [loo 2.0](http://mc-stan.org/loo/)
 * Projection predictive model selection
   * [collinear](https://rawgit.com/avehtari/modelselection_tutorial/master/collinear.html)
   * [diabetes](https://rawgit.com/avehtari/modelselection_tutorial/master/diabetes.html)
   * [projpred](https://github.com/stan-dev/projpred)
 
-### Additional demos added after the tutorial
+### Additional case studies
 
-* projpred examples
+* [loo 2.0](http://mc-stan.org/loo/)
+  * [Bayesian Stacking and Pseudo-BMA weights using the loo package](http://mc-stan.org/loo/articles/loo2-weights.html)
+  * [Leave-one-out cross-validation for non-factorizable models](http://mc-stan.org/loo/articles/loo2-non-factorizable.html)
+  * [m-step-ahead cross-validation for time series](https://rawgit.com/paul-buerkner/m-step-ahead-predictions/master/m-step-ahead-predictions.html)
+* Projection predictive model selection (projpred) examples
   * collinearity - [mesquite](https://rawgit.com/avehtari/modelselection_tutorial/master/mesquite.html)
   * random data vs original data - [candy](https://rawgit.com/avehtari/modelselection_tutorial/master/candy.html)
   * [winequality-red](https://rawgit.com/avehtari/modelselection_tutorial/master/winequality-red.html)
   * [bodyfat](https://rawgit.com/avehtari/modelselection_tutorial/master/bodyfat.html)
-* See also [projpred quick start vignette](https://rawgit.com/stan-dev/projpred/master/vignettes/quickstart.html)
+  * See also [projpred quick start vignette](https://rawgit.com/stan-dev/projpred/master/vignettes/quickstart.html)
+* [LOO-R^2](../bayes_R2/bayes_R2.html)
 
 ### See also
+* [When LOO and other cross-validation approaches are valid](http://andrewgelman.com/2018/08/03/loo-cross-validation-approaches-valid/)
+* [Parsimonious principle vs integration over all uncertainties](http://andrewgelman.com/2018/07/26/parsimonious-principle-vs-integration-uncertainties/)
+* [Comments on Limitations of Bayesian Leave-One-Out Cross-Validation for Model Selection](http://andrewgelman.com/2018/06/05/comments-limitations-bayesian-leave-one-cross-validation-model-selection/)
+* [I am the supercargo](http://andrewgelman.com/2018/06/21/i-am-the-supercargo/)
 * Nice horseshoe example in [Bayes Sparse Regression case study by Michael Betancourt](https://betanalpha.github.io/assets/case_studies/bayes_sparse_regression.html)
 
 ### References
