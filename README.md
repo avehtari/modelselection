@@ -7,7 +7,7 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * Model assessmen and model selection aka Basics of cross-validation tutorial at StanCon 2018 Helsinki
   - [Slides](Vehtari_StanHEL_CV.pdf)
   - [Video](https://www.youtube.com/watch?v=hpr8pxqkCH8&t=0s&list=PLuwyh42iHquU4hUBQs20hkBsKSMrp6H0J&index=9)
-  - [Code for figures](cv_basics.html)
+  - [Code for figures](https://rawgit.com/avehtari/modelselection_tutorial/master/cv_basics.html)
 * Regularized horseshoe talk at StanCon 2018 Asilomar
   - [Slides](regularizedhorseshoe_slides.pdf)
   - [Video](https://www.youtube.com/watch?v=umk7eOkt5k8)
