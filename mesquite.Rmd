@@ -19,7 +19,8 @@ csl: harvard-cite-them-right.csl
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
-**Load packages** 
+
+**Load packages** - Requires projpred 1.0.1+
 ```{r}
 library(rstanarm)
 library(arm)
@@ -98,9 +99,6 @@ summary(fitg)
 ```
 
 Rhats and n_effs are good (see, e.g., [RStan workflow](http://mc-stan.org/users/documentation/case-studies/rstan_workflow.html)), but QR transformation usually makes sampling work even better (see, [The QR Decomposition For Regression Models](http://mc-stan.org/users/documentation/case-studies/qr_regression.html))
-```{r}
-fitg <- stan_glm(formula = log(LeafWt) ~ log(CanVol) + log(CanAre) + log(CanSha) + log(TotHt) + log(Dens) + Group, data = dat, QR=TRUE, refresh=0)
-```
 
 Print summary for some diagnostics.
 ```{r}
