@@ -221,7 +221,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Bayesian version of Does model averaging make sense?</h1>
 <h4 class="author"><em>Aki Vehtari</em></h4>
-<h4 class="date"><em>First version 2017-08-09. Last modified 2018-10-09.</em></h4>
+<h4 class="date"><em>First version 2017-08-09. Last modified 2018-10-10.</em></h4>
 
 </div>
 
@@ -240,7 +240,7 @@ SEED=87</code></pre>
 </div>
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
-<p>This notebook was inspired by Andrew Tyre’s blog post <a href="https://atyre2.github.io/2017/06/16/rebutting_cade.html">Does model averaging make sense?</a>. Tyre discusses problems in current statistical practices in ecology, focusing in multi-collinearity, model averaging and measuring the relative importance of variables. Tyre’s post is commenting a paper <a href="http://onlinelibrary.wiley.com/doi/10.1890/14-1639.1/full.">Model averaging and muddled multimodel inferences</a> In his blog post he uses maximum likelihood and AIC_c. Here we provide a Bayesian approach for handling multicollinearity, model averaging and measuring relative importance of variables using packages [<code>rstanarm</code>}(<a href="https://cran.r-project.org/package=rstanarm" class="uri">https://cran.r-project.org/package=rstanarm</a>), <a href="https://cran.r-project.org/package=bayesplot"><code>bayesplot</code></a>, <a href="https://cran.r-project.org/package=loo"><code>loo</code></a> and <a href="https://cran.r-project.org/package=projpred"><code>projpred</code></a>. We demonstrate the benefits of Bayesian posterior analysis <span class="citation">(Gelman <em>et al.</em>, 2013)</span> and projection predictive approach <span class="citation">(Piironen and Vehtari, 2017; Piironen, Paasiniemi and Vehtari, 2018)</span>.</p>
+<p>This notebook was inspired by Andrew Tyre’s blog post <a href="https://atyre2.github.io/2017/06/16/rebutting_cade.html">Does model averaging make sense?</a>. Tyre discusses problems in current statistical practices in ecology, focusing in multi-collinearity, model averaging and measuring the relative importance of variables. Tyre’s post is commenting a paper <a href="http://onlinelibrary.wiley.com/doi/10.1890/14-1639.1/full.">Model averaging and muddled multimodel inferences</a> In his blog post he uses maximum likelihood and AIC_c. Here we provide a Bayesian approach for handling multicollinearity, model averaging and measuring relative importance of variables using packages <a href="https://cran.r-project.org/package=rstanarm"><code>rstanarm</code></a>, <a href="https://cran.r-project.org/package=bayesplot"><code>bayesplot</code></a>, <a href="https://cran.r-project.org/package=loo"><code>loo</code></a> and <a href="https://cran.r-project.org/package=projpred"><code>projpred</code></a>. We demonstrate the benefits of Bayesian posterior analysis <span class="citation">(Gelman <em>et al.</em>, 2013)</span> and projection predictive approach <span class="citation">(Piironen and Vehtari, 2017; Piironen, Paasiniemi and Vehtari, 2018)</span>.</p>
 </div>
 <div id="data" class="section level1">
 <h1><span class="header-section-number">2</span> Data</h1>
@@ -427,7 +427,7 @@ x1           5.8  7.7</code></pre>
 <h1>References</h1>
 <div id="refs">
 <div id="ref-BDA3">
-<p>Gelman, A. <em>et al.</em> (2013) <em>Bayesian data analysis, third edition</em>. CRC Press.</p>
+<p>Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A. and Rubin, D. B. (2013) <em>Bayesian data analysis, third edition</em>. CRC Press.</p>
 </div>
 <div id="ref-Piironen+Vehtari:2017a">
 <p>Piironen, J. and Vehtari, A. (2017) ‘Comparison of Bayesian predictive methods for model selection’, <em>Statistics and Computing</em>, 27(3), pp. 711–735. doi: <a href="https://doi.org/10.1007/s11222-016-9649-y">10.1007/s11222-016-9649-y</a>.</p>
