@@ -1,30 +1,26 @@
 ---
 title: "Bayesian data analysis - roaches cross-validation demo"
 author: "Aki Vehtari"
+date: "First version 2017-01-10. Last modified `r format(Sys.Date())`."
 output:
-  html_document: default
-  html_notebook: default
+  html_document:
+    fig_caption: yes
+    toc: TRUE
+    toc_depth: 2
+    number_sections: TRUE
+    toc_float:
+      smooth_scroll: FALSE
+bibliography: modelsel.bib
+csl: harvard-cite-them-right.csl
 ---
 
+# Setup  {.unnumbered}
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
 
-Demonstration of simple misspecified model. In this case, cross-validation
-is useful to detect misspecification.
-
-This example comes from Chapter 8.3 of [Gelman and Hill (2007)](http://www.stat.columbia.edu/~gelman/arm/) and the introduction text is from [Estimating Generalized Linear Models for Count Data with rstanarm](https://cran.r-project.org/web/packages/rstanarm/vignettes/count.html) by Jonah Gabry and Ben Goodrich.
-
-We want to make inferences about the efficacy of a certain pest management system at reducing the number of roaches in urban apartments. Here is how Gelman and Hill describe the experiment (pg. 161):
-
-> the treatment and control were applied to 160 and 104 apartments, respectively, and the outcome measurement $y_i$ in each apartment $i$ was the number of roaches caught in a set of traps. Different apartments had traps for different numbers of days
-
-In addition to an intercept, the regression predictors for the model are the pre-treatment number of roaches `roach1`, the treatment indicator `treatment`, and a variable indicating whether the apartment is in a building restricted to elderly residents `senior`. Because the number of days for which the roach traps were used is not the same for all apartments in the sample, we include it as an `exposure2` by adding $\ln(u_i)$) to the linear predictor $\eta_i$ and it can be specified using the `offset` argument to `stan_glm`.
-
-___
-
-Load libraries
-
+**Load packages**
 ```{r}
 library(rstanarm)
 library(rstan)
@@ -32,8 +28,25 @@ options(mc.cores = parallel::detectCores())
 library(loo)
 library(shinystan)
 library(bayesplot)
+theme_set(bayesplot::theme_default(base_family = "sans"))
 library(ggplot2)
 ```
+
+# Introduction
+
+This notebook demonstrates cross-validation of simple misspecified
+model. In this case, cross-validation is useful to detect
+misspecification.
+
+The example comes from Chapter 8.3 of [Gelman and Hill (2007)](http://www.stat.columbia.edu/~gelman/arm/) and the introduction text for the data is from [Estimating Generalized Linear Models for Count Data with rstanarm](https://cran.r-project.org/web/packages/rstanarm/vignettes/count.html) by Jonah Gabry and Ben Goodrich.
+
+We want to make inferences about the efficacy of a certain pest management system at reducing the number of roaches in urban apartments. Here is how Gelman and Hill describe the experiment (pg. 161):
+
+> the treatment and control were applied to 160 and 104 apartments, respectively, and the outcome measurement $y_i$ in each apartment $i$ was the number of roaches caught in a set of traps. Different apartments had traps for different numbers of days
+
+In addition to an intercept, the regression predictors for the model are the pre-treatment number of roaches `roach1`, the treatment indicator `treatment`, and a variable indicating whether the apartment is in a building restricted to elderly residents `senior`. Because the number of days for which the roach traps were used is not the same for all apartments in the sample, we include it as an `exposure2` by adding $\ln(u_i)$) to the linear predictor $\eta_i$ and it can be specified using the `offset` argument to `stan_glm`.
+
+# Poisson model
 
 Load data
 ```{r}
@@ -43,12 +56,14 @@ roaches$roach1 <- roaches$roach1 / 100
 ```
 
 Fit with stan_glm
-```{r,warning=FALSE,error=FALSE,message=FALSE}
+```{r, results='hide'}
 stan_glmp <- stan_glm(y ~ roach1 + treatment + senior, offset = log(exposure2),
                       data = roaches, family = poisson, 
                       prior = normal(0,2.5), prior_intercept = normal(0,5),
                       chains = 4, cores = 1, seed = 170400963, refresh=0)
 ```
+
+## Analyse posterior
 
 Plot posterior
 ```{r}
@@ -57,34 +72,38 @@ mcmc_areas(as.matrix(stan_glmp),prob_outer = .9999)
 
 We have all marginals significantly away from zero.
 
-We can use Pareto-smoothed importance sampling as model checking tool, too.
+## Cross-validation checking
+
+We can use Pareto-smoothed importance sampling leave-one-out cross-validation as model checking tool [@Vehtari+etal:PSIS-LOO:2017].
 ```{r}
 (loop <- loo(stan_glmp))
 ```
-We got serious warnings, let's plot khat values.
+We got serious warnings, let's plot Pareto $k$ values.
 ```{r}
 plot(loop)
 ```
 
 There are several observations which are highly influential, which
-indicates potential model misspecification.
+indicates potential model misspecification [@Vehtari+etal:PSIS-LOO:2017].
 
 Before looking in more detail where the problem is or fixing it, let's check what would cross-validation say about relevance of covariates.
 
 We form 3 models by dropping each of the covariates out.
-```{r,warning=FALSE,error=FALSE}
+```{r, results='hide'}
 stan_glmm1p <- update(stan_glmp, formula = y ~ treatment + senior)
 stan_glmm2p <- update(stan_glmp, formula = y ~ roach1 + senior)
 stan_glmm3p <- update(stan_glmp, formula = y ~ roach1 + treatment)
 ```
 
-Although khats were very large we can make a quick test with PSIS-LOO (if the comparison would say there is difference, then PSIS-LOO couldn't be trusted and PSIS-LOO+ or k-fold-CV woul be needed).
+Although Pareto $k$ values were very large we can make a quick test with PSIS-LOO (if the comparison would say there is difference, then PSIS-LOO couldn't be trusted and PSIS-LOO+ or k-fold-CV woul be needed [see more in @Vehtari+etal:PSIS-LOO:2017]).
 ```{r}
-compare_models(loo(stan_glmm1p),loop)
-compare_models(loo(stan_glmm2p),loop)
-compare_models(loo(stan_glmm3p),loop)
+compare_models(loo(stan_glmm1p), loop)
+compare_models(loo(stan_glmm2p), loop)
+compare_models(loo(stan_glmm3p), loop)
 ```
 Based on this the roaches covariate would be relevant, but although dropping treatment or senior covariate will make a large chnage to elpd, the uncertainty is also large and cross-validation states that these covariates are not necessarily relevant! The posterior marginals are conditional on the model, but cross-validation is more cautios by not using any model for the future data distribution.
+
+## Posterior predictive checking
 
 It's also good to remember that in addition of cross-validation, the posterior predictive checks can often detect problems and also provide more information about the reason. Here we test the proportion of zeros predicted by the model and compare them to the observed number of zeros.
 ```{r}
@@ -92,10 +111,14 @@ prop_zero <- function(y) mean(y == 0)
 (prop_zero_test1 <- pp_check(stan_glmp, plotfun = "stat", stat = "prop_zero"))
 ```
 
+# Negative binomial model
+
 Next we change the Poisson model to a more robust negative binomial model
-```{r,warning=FALSE,error=FALSE}
+```{r, results='hide'}
 stan_glmnb <- update(stan_glmp, family = neg_binomial_2)
 ```
+
+## Analyse posterior
 
 Plot posterior
 ```{r}
@@ -112,14 +135,16 @@ mcmc_pairs(as.matrix(stan_glmnb),pars = c("(Intercept)","roach1","treatment","se
 
 There are some posterior correlations, but not something which would change our conclusions.
 
-Let's check Pareto khat diagnostics
+## Cross-validation checking
+
+Let's check PSIS-LOO Pareto $k$ diagnostics
 ```{r}
 (loonb <- loo(stan_glmnb))
 ```
 All khat's are ok, which indicates that negative-Binomial would be
 better (for final results it would be good to run PSIS-LOO+). We can also compare Poisson and negative-Binomial.
 ```{r}
-compare_models(loop,loonb)
+compare_models(loop, loonb)
 ```
 Negative-Binomial model is clearly better than Poisson.
 
@@ -129,15 +154,18 @@ mcmc_areas(as.matrix(stan_glmnb), prob_outer = .9999,
     pars = c("reciprocal_dispersion"))
 ```
 
+## Posterior predictive checking
+
 We next use posterior predictive checking to check that the improved model can also predict the proportion of zeros well.
 ```{r}
 (prop_zero_test2 <- pp_check(stan_glmnb, plotfun = "stat", stat = "prop_zero"))
 ```
 The result looks much better than for the Poisson model.
 
+## Predictive relevance of covariates
 
 Let's finally check cross-validation model comparison that it agrees on relevance of covariates
-```{r,warning=FALSE,error=FALSE}
+```{r, results='hide'}
 stan_glmm1nb <- update(stan_glmm1p, family = neg_binomial_2)
 stan_glmm2nb <- update(stan_glmm2p, family = neg_binomial_2)
 stan_glmm3nb <- update(stan_glmm3p, family = neg_binomial_2)
@@ -155,8 +183,17 @@ Conclusion from the analysis would be then that, treatment is likely to help, bu
 
 <br />
 
+# References {.unnumbered}
 
-### Appendix: Session information
+<div id="refs"></div>
+
+# Licenses {.unnumbered}
+
+* Code &copy; 2017-2018, Aki Vehtari, licensed under BSD-3.
+* Text &copy; 2017-2018, Aki Vehtari, licensed under CC-BY-NC 4.0.
+* Parts of text and code &copy; 2017, Jonah Gabry and Ben Goodrich from [rstanarm vignette for count data](https://cran.r-project.org/web/packages/rstanarm/vignettes/count.html), licensed under GPL 3>
+
+# Original Computing Environment {.unnumbered}
 
 ```{r}
 sessionInfo()
@@ -164,8 +201,3 @@ sessionInfo()
 
 <br />
 
-### Appendix: Licenses
-
-* Code &copy; 2017, Aki Vehtari, licensed under BSD-3.
-* Text &copy; 2017, Aki Vehtari, licensed under CC-BY-NC 4.0.
-* Parts of text and code &copy; 2017, Jonah Gabry and Ben Goodrich from [rstanarm vignette for count data](https://cran.r-project.org/web/packages/rstanarm/vignettes/count.html), licensed under GPL 3>

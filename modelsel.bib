@@ -1,0 +1,233 @@
+@article{betancourt2017conceptual,
+  title={A conceptual introduction to Hamiltonian Monte Carlo},
+  author={Betancourt, Michael},
+  journal={arXiv preprint arXiv:1701.02434},
+  year={2017}
+}
+
+@ARTICLE{Betancourt2013,
+  title         = "Hamiltonian Monte Carlo for Hierarchical Models",
+  author        = "Betancourt, M J and Girolami, Mark",
+  abstract      = "Hierarchical modeling provides a framework for modeling the
+                   complex interactions typical of problems in applied
+                   statistics. By capturing these relationships, however,
+                   hierarchical models also introduce distinctive pathologies
+                   that quickly limit the efficiency of most common methods of
+                   in- ference. In this paper we explore the use of Hamiltonian
+                   Monte Carlo for hierarchical models and demonstrate how the
+                   algorithm can overcome those pathologies in practical
+                   applications.",
+  year          =  2013,
+  archivePrefix = "arXiv",
+  primaryClass  = "stat.ME",
+  eprint        = "1312.0906"
+}
+
+@article{Stan:JSS:2017,
+   author = {Bob Carpenter and Andrew Gelman and Matthew Hoffman and Daniel Lee and Ben Goodrich and Michael Betancourt and Marcus Brubaker and Jiqiang Guo and Peter Li and Allen Riddell},
+   title = {Stan: A Probabilistic Programming Language},
+   journal = {Journal of Statistical Software, Articles},
+   volume = {76},
+   number = {1},
+   year = {2017},
+   keywords = {probabilistic programming; Bayesian inference; algorithmic differentiation; Stan},
+   abstract = {Stan is a probabilistic programming language for specifying statistical models. A Stan program imperatively defines a log probability function over parameters conditioned on specified data and constants. As of version 2.14.0, Stan provides full Bayesian inference for continuous-variable models through Markov chain Monte Carlo methods such as the No-U-Turn sampler, an adaptive form of Hamiltonian Monte Carlo sampling. Penalized maximum likelihood estimates are calculated using optimization methods such as the limited memory Broyden-Fletcher-Goldfarb-Shanno algorithm. Stan is also a platform for computing log densities and their gradients and Hessians, which can be used in alternative algorithms such as variational Bayes, expectation propagation, and marginal inference using approximate integration. To this end, Stan is set up so that the densities, gradients, and Hessians, along with intermediate quantities of the algorithm such as acceptance probabilities, are easily accessible. Stan can be called from the command line using the cmdstan package, through R using the rstan package, and through Python using the pystan package. All three interfaces support sampling and optimization-based inference with diagnostics and posterior analysis. rstan and pystan also provide access to log probabilities, gradients, Hessians, parameter transforms, and specialized plotting.},
+   issn = {1548-7660},
+   pages = {1--32},
+   doi = {10.18637/jss.v076.i01},
+   url = {https://www.jstatsoft.org/v076/i01}
+}
+
+@article{Kucukelbir+etal:ADVI:2017,
+    title={Automatic differentiation variational inference},
+    author={Kucukelbir, Alp and Tran, Dustin and Ranganath, Rajesh and Gelman, Andrew and Blei, David M},
+    journal={The Journal of Machine Learning Research},
+    volume={18},
+    pages={430--474},
+    year={2017},
+    url={http://jmlr.org/papers/v18/16-107.html}
+  }
+
+
+@article{betancourt2017conceptual,
+  title={A conceptual introduction to {Hamiltonian Monte Carlo}},
+  author={Betancourt, Michael},
+  journal={arXiv preprint arXiv:1701.02434},
+  year={2017}
+}
+
+@book{BDA3,
+title={Bayesian Data Analysis, third edition},
+author={Gelman, Andrew and Carlin, John B. and Stern, Hal S. and Dunson, David B. and Vehtari, Aki and Rubin, Donald B.},
+publisher={CRC Press},
+year={2013}}
+
+@article{Gelman+Rubin:1992,
+  title={Inference from iterative simulation using multiple sequences},
+  author={Gelman, Andrew and Rubin, Donald B},
+  journal={Statistical science},
+  volume={7},
+  number={4},
+  pages={457--472},
+  year={1992}
+}
+
+@article{Brooks+Gelman:1998,
+author = { Stephen P.   Brooks  and  Andrew   Gelman },
+title = {General Methods for Monitoring Convergence of Iterative Simulations},
+journal = {Journal of Computational and Graphical Statistics},
+volume = {7},
+number = {4},
+pages = {434-455},
+year  = {1998}
+}
+
+
+@Misc{Stan.2.18,
+  author = 	 {{Stan Development Team}},
+  title = 	 {The {Stan} Core Library Version 2.18.0},
+  year = 	 2018,
+  url = {http://mc-stan.org}
+}
+
+@Misc{RStan.2.17,
+  author = 	 {{Stan Development Team}},
+  title = 	 {{RStan}: the {R} interface to {Stan}. {R} package Version 2.17.3},
+  year = 	 2018,
+  url = {http://mc-stan.org}
+}
+
+@Misc{RStanARM.2.17,
+  author = 	 {{Stan Development Team}},
+  title = 	 {{RStanArm}: {Bayesian} applied regression modeling via {Stan}. {R} package Version 2.17.4},
+  year = 	 2018,
+  url = {http://mc-stan.org}
+}
+
+@Misc{StanManual.2.18.0,
+  author = 	 {{Stan Development Team}},
+  title = 	 {Stan Modeling Language Users Guide and Reference Manual. Version 2.18.0},
+  year = 	 2018,
+  url = {http://mc-stan.org}
+}
+
+@Article{Geyer:1992,
+  author = 	 {C J Geyer},
+  title = 	 {Practical {Markov} Chain {Monte} {Carlo}},
+  journal = 	 {Statistical Science},
+  year = 	 {1992},
+  volume = 	 {7},
+  pages = 	 {473--483}
+}
+
+@InCollection{Geyer:2011,
+  author = 	 {C J Geyer},
+  title = 	 {Introduction to {Markov} chain {Monte} {Carlo}},
+  booktitle = 	 {Handbook of Markov Chain Monte Carlo},
+  publisher =    {CRC Press},
+  year = 	 {2011},
+  editor = 	 {S Brooks and A Gelman and G L Jones and X L Meng}
+}
+
+@article{Hoffman+Gelman:2014,
+  author  = {Matthew D. Hoffman and Andrew Gelman},
+  title   = {The {No-U-Turn} {Sampler}: Adaptively Setting Path Lengths in {Hamiltonian} {Monte} {Carlo}},
+  journal = {Journal of Machine Learning Research},
+  year    = {2014},
+  volume  = {15},
+  pages   = {1593-1623},
+  url     = {http://jmlr.org/papers/v15/hoffman14a.html}
+}
+
+@article{Vehtari+etal:PSIS:2017,
+  title={Pareto smoothed importance sampling},
+  author={Vehtari, Aki and Gelman, Andrew and Gabry, Jonah},
+  journal={arXiv preprint arXiv:1507.02646},
+  year={2017},
+  url={https://arxiv.org/abs/1507.02646}
+}
+
+@article{Piironen+etal:projpred:2018,
+  title={Projective Inference in High-dimensional Problems: Prediction and Feature Selection},
+  author={Piironen, Juho and Paasiniemi, Markus and Vehtari, Aki},
+  journal={arXiv preprint arXiv:1810.02406},
+  year={2018},
+  url={https://arxiv.org/abs/1810.02406}
+}
+
+@article{Vehtari+etal:PSIS-LOO:2017,
+  title={Practical {Bayesian} model evaluation using leave-one-out cross-validation and WAIC},
+  author={Vehtari, Aki and Gelman, Andrew and Gabry, Jonah},
+  journal={Statistics and Computing},
+  volume={27},
+  number={5},
+  pages={1413--1432},
+  year={2017},
+  doi={10.1007/s11222-016-9696-4},
+  url={https://arxiv.org/abs/1507.04544}
+}
+
+@article{Piironen+Vehtari:2017a,
+	author = {Piironen, Juho and Vehtari, Aki},
+	title = {Comparison of {Bayesian} predictive methods for model selection},
+	year = {2017},
+	journal = {Statistics and Computing},
+	volume = {27},
+	number = {3},
+	pages = {711--735},
+	doi = {10.1007/s11222-016-9649-y},
+	url = {https://doi.org/10.1007/s11222-016-9649-y}
+}
+
+@MANUAL{stanmanual,
+  title={Stan Modeling Language Users Guide and Reference Manual},
+  author={{Stan Development Team}},
+  note={Version 2.17.1},
+  address={http://mc-stan.org},
+  year={2018}
+}
+
+@inproceedings{Piironen+Vehtari:ISPC:2018,
+	author = {Piironen, Juho and Vehtari, Aki},
+	title = {Iterative supervised principal components},
+	booktitle = {Proceedings of the 21st International Conference on Artificial Intelligence and Statistics},
+	pages = {106--114},
+	year = {2018},
+	editor = {Amos Storkey and Fernando Perez-Cruz},
+	volume = {84},
+	series = {Proceedings of Machine Learning Research},
+	url = {http://proceedings.mlr.press/v84/piironen18a.html}
+}
+
+@article{Piironen+Vehtari:RHS:2017,
+	author = {Piironen, Juho and Vehtari, Aki},
+	title = {Sparsity information and regularization in the horseshoe and other shrinkage priors},
+	year = {2017},
+	journal = {Electronic journal of Statistics},
+	volume = {11},
+	number = {2},
+	pages = {5018--5051},
+	doi = {10.1214/17-EJS1337SI},
+	url = {https://projecteuclid.org/euclid.ejs/1513306866}
+}
+
+@article{Vehtari+Ojanen:2012,
+	author = {Vehtari, Aki and Ojanen, Janne},
+	title = {A survey of {B}ayesian predictive methods for model assessment, selection and comparison},
+	year = {2012},
+	journal = {Statistics Surveys},
+	volume = {6},
+	pages = {142--228},
+	doi = {10.1214/12-SS102}
+}
+
+@article{Peltola+etal:finite:2012,
+  title={Finite adaptation and multistep moves in the Metropolis-Hastings algorithm for variable selection in genome-wide association analysis},
+  author={Peltola, Tomi and Marttinen, Pekka and Vehtari, Aki},
+  journal={PloS one},
+  volume={7},
+  number={11},
+  pages={e49445},
+  year={2012},
+  doi={doi.org/10.1371/journal.pone.0049445}
+}

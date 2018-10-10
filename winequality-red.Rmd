@@ -1,33 +1,50 @@
 ---
 title: "Bayesian variable selection for red wine quality ranking data"
+author: "Aki Vehtari"
+date: "First version 2018-02-27. Last modified `r format(Sys.Date())`."
 output:
-  html_document: default
-  html_notebook: default
-  pdf_document: default
+  html_document:
+    fig_caption: yes
+    toc: TRUE
+    toc_depth: 2
+    number_sections: TRUE
+    toc_float:
+      smooth_scroll: FALSE
+bibliography: modelsel.bib
+csl: harvard-cite-them-right.csl
 ---
 
+# Setup  {.unnumbered}
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
 
-This notebook was inspired by Eric Novik's slides "Deconstructing Stan Manual Part 1: Linear". The idea is to demonstrate how easy it is to do good variable selection with rstanarm, loo, and projpred.
-
-In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO http://link.springer.com/article/10.1007/s11222-016-9696-4 and projection predictive approach http://link.springer.com/article/10.1007/s11222-016-9649-y which makes decision theoretically justified inference after model selection.
-
-Load libraries.
+**Load packages**
 ```{r}
 library(rstanarm)
 options(mc.cores = parallel::detectCores())
 library(loo)
 library(bayesplot)
 library(projpred)
+SEED=170701694
 ```
 
-We use Wine quality data set from UCI Machine Learning repository https://archive.ics.uci.edu/ml/datasets/wine+qualitycandy.
+# Introduction
+
+This notebook was inspired by Eric Novik's slides "Deconstructing Stan Manual Part 1: Linear". The idea is to demonstrate how easy it is to do good variable selection with [`rstanarm`](https://cran.r-project.org/package=rstanarm), [`loo`](https://cran.r-project.org/package=loo), and [`projpred`](https://cran.r-project.org/package=projpred).
+
+In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] and projection predictive approach [@Piironen+etal:projpred:2018; @Piironen+Vehtari:2017a] which makes decision theoretically justified inference after model selection..
+
+# Wine quality data
+
+We use [Wine quality data set from UCI Machine Learning repository](https://archive.ics.uci.edu/ml/datasets/wine+qualitycandy)
 ```{r}
 d <- read.delim("winequality-red.csv", sep = ";")
 dim(d)
-# Remove duplicated
+```
+Remove duplicated
+```{r}
 d <- d[!duplicated(d), ] # remove the duplicates
 dim(d)
 names(d)
@@ -39,16 +56,18 @@ ds <- scale(d)
 df <- as.data.frame(ds)
 ```
 
-The rstanarm package provides stan_glm which accepts same arguments as glm, but makes full Bayesian inference using Stan (Hamiltonian Monte Carlo No-U-Turn-sampling). By default a weakly informative Gaussian prior is used for weights.
-```{r}
-fitg <- stan_glm(quality ~ ., data = df, QR=TRUE, seed=170701694, refresh=0)
+# Fit regression model
+
+The `rstanarm` package provides `stan_glm` which accepts same arguments as `glm`, but makes full Bayesian inference using Stan ([mc-stan.org](https://mc-stan.org)). By default a weakly informative Gaussian prior is used for weights.
+```{r, results='hide'}
+fitg <- stan_glm(quality ~ ., data = df, QR=TRUE, seed=SEED, refresh=0)
 ```
 Let's look at the summary:
 ```{r}
 summary(fitg)
 ```
 
-We didn't get divergences, Rhat's are less than 1.1 and n_eff's are useful (see, e.g., http://mc-stan.org/users/documentation/case-studies/rstan_workflow.html).
+We didn't get divergences, Rhat's are less than 1.1 and n_eff's are useful (see, e.g., [RStan workflow](http://mc-stan.org/users/documentation/case-studies/rstan_workflow.html)).
 
 ```{r}
 mcmc_areas(as.matrix(fitg),prob_outer = .95)
@@ -56,61 +75,68 @@ mcmc_areas(as.matrix(fitg),prob_outer = .95)
 
 Several 95% posterior intervals are not overlapping 0, so maybe there is something useful here.
 
+# Cross-validation checking
+
 In case of collinear variables it is possible that marginal posteriors overlap 0, but the covariates can still useful for prediction. With many variables it will be difficult to analyse joint posterior to see which variables are jointly relevant. We can easily test whether any of the covariates are useful by using cross-validation to compare to a null model,
 ```{r}
-fitg0 <- stan_glm(quality ~ 1, data = df, seed=170701694, refresh=0)
+fitg0 <- stan_glm(quality ~ 1, data = df, seed=SEED, refresh=0)
 ```
 
+We use fast Pareto smoothed importance sampling leave-one-out cross-validation [@Vehtari+etal:PSIS-LOO:2017]
 ```{r}
 (loog <- loo(fitg))
 (loog0 <- loo(fitg0))
-compare_models(loog0,loog)
+compare_models(loog0, loog)
 ```
 
 Based on cross-validation covariates together have a high predictive power. If we need just the predictions we can stop here, but if we want to learn more about the relevance of the covariates we can continue with variable selection.
 
-We make the projective predictive variable selection using projpred package. A fast leave-one-out cross-validation approach http://link.springer.com/article/10.1007/s11222-016-9696-4 is used to choose the model size.
+# Projection predictive variable selection
+
+We make the projective predictive variable selection [@Piironen+etal:projpred:2018; @Piironen+Vehtari:2017a] using `projpred` package. A fast PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] is used to choose the model size.
 ```{r, results='hide'}
 fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO', n_loo=nrow(df))
 ```
 
 ```{r}
-fitg_cv$varsel$vind
+fitg_cv$vind
 ```
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=T)
+varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=TRUE)
 ```
 
 Three or four variables seems to be needed to get the same performance as the full model.
 We can get a loo-cv based recommendation for the model size to choose.
 ```{r}
-(nv <- suggest_size(fitg_cv,alpha=0.1))
+(nv <- suggest_size(fitg_cv, alpha=0.1))
 ```
 projpred recommends to use four variables: alcohol, volatile.acidity, sulphates, and chlorides.
 
 Next we form the projected posterior for the chosen model. This projected model can be used in the future to make predictions by using only the selected variables.
 ```{r}
 projg <- project(fitg_cv, nv = nv, ns = 4000)
-round(colMeans(as.matrix(projg)),1)
-round(posterior_interval(as.matrix(projg)),1)
+round(colMeans(as.matrix(projg)), 1)
+round(posterior_interval(as.matrix(projg)), 1)
 ```
 
 The marginals of projected posteriors look like this.
 ```{r}
 mcmc_areas(as.matrix(projg), 
-           pars = c('(Intercept)', names(fitg_cv$varsel$vind[1:nv])))
+           pars = c('(Intercept)', names(fitg_cv$vind[1:nv])))
 ```
 
+# Alternative regularized horseshoe prior
 
-We also test regularized horseshoe prior which has more prior mass near 0.
-```{r}
-fitrhs <- stan_glm(quality ~ ., data = df, prior=hs(), seed=170701694, refresh=0)
+We also test regularized horseshoe prior [@Piironen+Vehtari:RHS:2017] which has more prior mass near 0.
+```{r, results='hide'}
+fitrhs <- stan_glm(quality ~ ., data = df, prior=hs(),
+                   seed=SEED, refresh=0)
 ```
 
 ```{r}
-mcmc_areas(as.matrix(fitrhs),prob_outer = .95)
+mcmc_areas(as.matrix(fitrhs), prob_outer = .95)
 ```
 
 Many of the variables are shrunk more towards 0, but still based on these marginals it is not as easy to select the most useful variables as it is with projpred.
@@ -119,24 +145,26 @@ The posteriors with normal and regularized horseshoe priors are clearly differen
 
 ```{r}
 (loorhs <- loo(fitrhs))
-compare_models(loog,loorhs)
+compare_models(loog, loorhs)
 ```
 There is no difference in predictive performance and thus we don't need to repeat the projpred variable selection for the model with regularized horseshoe prior.
 
 
 <br />
 
+# References {.unnumbered}
 
-### Appendix: Session information
+<div id="refs"></div>
+
+# Licenses {.unnumbered}
+
+* Code &copy; 2017-2018, Aki Vehtari, licensed under BSD-3.
+* Text &copy; 2017-2018, Aki Vehtari, licensed under CC-BY-NC 4.0.
+
+# Original Computing Environment {.unnumbered}
 
 ```{r}
 sessionInfo()
 ```
 
 <br />
-
-
-### Appendix: Licenses
-
-* Code &copy; 2017, Aki Vehtari, licensed under BSD-3.
-* Text &copy; 2017, Aki Vehtari, licensed under CC-BY-NC 4.0.

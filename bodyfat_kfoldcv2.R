@@ -57,7 +57,7 @@ for (k in 1:K) {
     fit_cvvs_k <- fitcvs[[k]]
     print(nvk <- suggest_size(fit_cvvs_k, alpha=0.1))
     vsnvss[[k]] <- nvk
-    fit_cvvs_k$varsel$vind[1:nvk]
+    fit_cvvs_k$vind[1:nvk]
     proj_k <- project(fit_cvvs_k, nv = nvk, ns = 4000)
     vsmuss[[k]] <-
         colMeans(proj_linpred(proj_k, xnew = dfr[omitted, , drop = FALSE]))
