@@ -221,7 +221,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Projection predictive variable selection – A review and recommendations for the practicing statistician</h1>
 <h4 class="author"><em>Aki Vehtari</em></h4>
-<h4 class="date"><em>First version 2018-03-06. Last modified 2018-10-09.</em></h4>
+<h4 class="date"><em>First version 2018-03-06. Last modified 2018-10-10.</em></h4>
 
 </div>
 
@@ -769,19 +769,62 @@ p0 &lt;- 5 # prior guess for the number of relevant variables
 tau0 &lt;- p0/(p-p0) * 1/sqrt(n)
 hs_prior &lt;- hs(global_scale=tau0)
 fitrhs2 &lt;- stan_glm(formula2, data = dfr, prior = hs_prior, QR = TRUE, 
-                   seed=SEED, refresh=0)
-fitrhs2_cvvs &lt;- cv_varsel(fitrhs, method = 'forward', cv_method = 'LOO',
+                   seed=SEED, refresh=0)</code></pre>
+<pre><code>
+Gradient evaluation took 0.000248 seconds
+1000 transitions using 10 leapfrog steps per transition would take 2.48 seconds.
+Adjust your expectations accordingly!
+
+
+
+ Elapsed Time: 49.5437 seconds (Warm-up)
+               67.2452 seconds (Sampling)
+               116.789 seconds (Total)
+
+
+Gradient evaluation took 0.000219 seconds
+1000 transitions using 10 leapfrog steps per transition would take 2.19 seconds.
+Adjust your expectations accordingly!
+
+
+
+ Elapsed Time: 42.2755 seconds (Warm-up)
+               17.4587 seconds (Sampling)
+               59.7342 seconds (Total)
+
+
+Gradient evaluation took 0.00015 seconds
+1000 transitions using 10 leapfrog steps per transition would take 1.5 seconds.
+Adjust your expectations accordingly!
+
+
+
+ Elapsed Time: 38.8092 seconds (Warm-up)
+               28.916 seconds (Sampling)
+               67.7252 seconds (Total)
+
+
+Gradient evaluation took 0.000179 seconds
+1000 transitions using 10 leapfrog steps per transition would take 1.79 seconds.
+Adjust your expectations accordingly!
+
+
+
+ Elapsed Time: 33.1923 seconds (Warm-up)
+               36.9123 seconds (Sampling)
+               70.1046 seconds (Total)</code></pre>
+<pre class="r"><code>fitrhs2_cvvs &lt;- cv_varsel(fitrhs, method = 'forward', cv_method = 'LOO',
                           nloo=n, verbose = FALSE)
-loormse_full2 &lt;- sqrt(mean((df$siri-fitrhs2_cvvs$varsel$summaries$full$mu)^2))
-loormse_proj2 &lt;- sqrt(mean((df$siri-fitrhs2_cvvs$varsel$summaries$sub[[nv]]$mu)^2))
+loormse_full2 &lt;- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$ref$mu)^2))
+loormse_proj2 &lt;- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$sub[[nv]]$mu)^2))
 nv2 &lt;- suggest_size(fitrhs2_cvvs, alpha=0.1)
 print(fitrhs2_cvvs$vind[1:nv2])</code></pre>
 <pre><code>abdomen  weight 
       6       2 </code></pre>
 <pre class="r"><code>print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full2,1)))</code></pre>
-<pre><code>[1] &quot;PSIS-LOO RMSE Bayesian full model:  NaN&quot;</code></pre>
+<pre><code>[1] &quot;PSIS-LOO RMSE Bayesian full model:  4.3&quot;</code></pre>
 <pre class="r"><code>print(paste('PSIS-LOO RMSE selected projpred model: ', round(loormse_proj2,1)))</code></pre>
-<pre><code>[1] &quot;PSIS-LOO RMSE selected projpred model:  NaN&quot;</code></pre>
+<pre><code>[1] &quot;PSIS-LOO RMSE selected projpred model:  4.7&quot;</code></pre>
 <p>Variable selection with <code>projpred</code> has selected 2 variables from which 0 are random noise. PSIS-LOO RMSE for the full Bayesian model and the selected <code>projpred</code> model are same as with the original data.</p>
 <p>If you don’t trust PSIS-LOO you can run the following K-fold-CV to get almost the same result.</p>
 <pre class="r"><code>writeLines(readLines(&quot;bodyfat_kfoldcv2.R&quot;))</code></pre>

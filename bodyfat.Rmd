@@ -1,6 +1,5 @@
 ---
-title: "Projection predictive variable selection – A review and recommendations
-for the practicing statistician"
+title: "Projection predictive variable selection – A review and recommendations for the practicing statistician"
 author: "Aki Vehtari"
 date: "First version 2018-03-06. Last modified `r format(Sys.Date())`."
 output:
@@ -462,8 +461,8 @@ fitrhs2 <- stan_glm(formula2, data = dfr, prior = hs_prior, QR = TRUE,
                    seed=SEED, refresh=0)
 fitrhs2_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'LOO',
                           nloo=n, verbose = FALSE)
-loormse_full2 <- sqrt(mean((df$siri-fitrhs2_cvvs$varsel$summaries$full$mu)^2))
-loormse_proj2 <- sqrt(mean((df$siri-fitrhs2_cvvs$varsel$summaries$sub[[nv]]$mu)^2))
+loormse_full2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$ref$mu)^2))
+loormse_proj2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$sub[[nv]]$mu)^2))
 nv2 <- suggest_size(fitrhs2_cvvs, alpha=0.1)
 print(fitrhs2_cvvs$vind[1:nv2])
 print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full2,1)))
