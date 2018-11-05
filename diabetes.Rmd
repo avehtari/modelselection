@@ -26,6 +26,7 @@ library(tidyverse)
 library(caret)
 library(GGally)
 library(ggplot2)
+library(corrplot)
 library(bayesplot)
 theme_set(bayesplot::theme_default(base_family = "sans"))
 library(rstanarm)
@@ -181,8 +182,8 @@ summary(diabetes)
 str(diabetes)
 ```
 
+Pre-processing
 ```{r}
-diabetes$Outcome <- factor(diabetes$Outcome)
 
 # removing those observation rows with 0 in any of the variables
 for (i in 2:6) {
@@ -204,7 +205,14 @@ print(paste0("number of observations = ", n))
 print(paste0("number of predictors = ", p))
 ```
 
+Plot correlation structure
 ```{r}
+corrplot(cor(diabetes[, c(9,1:8)]))
+```
+
+Make outcome to be factor type and create x and y variables
+```{r}
+diabetes$outcome <- factor(diabetes$outcome)
 # preparing the inputs
 x <- model.matrix(outcome ~ . - 1, data = diabetes)
 y <- diabetes$outcome
@@ -331,7 +339,7 @@ ggplot(data = data.frame(pred=pred,loopred=ploo,y=as.numeric(y)-1), aes(x=loopre
   stat_smooth(method='glm', formula = y ~ ns(x, 5), fullrange=TRUE) +
   geom_abline(linetype = 'dashed') +
   labs(x = "Predicted (LOO)", y = "Observed") +
-  geom_jitter(height=0.03, width=0) +
+  geom_jitter(height=0.02, width=0, alpha=0.3) +
   scale_y_continuous(breaks=seq(0,1,by=0.1)) +
   xlim(c(0,1))
 ```
@@ -437,13 +445,14 @@ calPlotData<-calibration(y ~ loopred + loogammpred,
                          data = data.frame(loopred=ploo,loogammpred=loogammpred,y=y),
                          cuts=10, class="1")
 ggplot(calPlotData, auto.key = list(columns = 2))
+
 ```
 
 Non-linear model appears to be able to partially model the saturating high probabilities and is thus slighlty better calibrated.
 
 The above calibration plot is using independent bins for the observations. The following uses a spline fit for smoothing (with narrower uncertainties).
 ```{r}
-ggplot(data = data.frame(loopred=loogammpred,y=as.numeric(y)-1), aes(x=loopred, y=y)) + stat_smooth(method='glm', formula = y ~ ns(x, 5), fullrange=TRUE) + geom_abline(linetype = 'dashed') + ylab(label = "Observed") + xlab(label = "Predicted (LOO)") + geom_jitter(height=0.03, width=0) + scale_y_continuous(breaks=seq(0,1,by=0.1)) + xlim(c(0,1))
+ggplot(data = data.frame(loopred=loogammpred,y=as.numeric(y)-1), aes(x=loopred, y=y)) + stat_smooth(method='glm', formula = y ~ ns(x, 5), fullrange=TRUE) + geom_abline(linetype = 'dashed') + ylab(label = "Observed") + xlab(label = "Predicted (LOO)") + geom_jitter(height=0.02, width=0, alpha=0.3) + scale_y_continuous(breaks=seq(0,1,by=0.1)) + xlim(c(0,1))
 ```
 
 <br />
