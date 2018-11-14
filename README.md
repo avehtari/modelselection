@@ -4,10 +4,13 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 
 ### Talks
 
+* Model assessment, comparison and selection at Master class in Bayesian statistics, CIRM, Marseille
+  - [Slides](slides_model_assesment_selection.pdf)
+  - [Video](https://library.cirm-math.fr/Record.htm?idlist=157&record=19285597124910037799)
 * Model assessmen and model selection aka Basics of cross-validation tutorial at StanCon 2018 Helsinki
   - [Slides](Vehtari_StanHEL_CV.pdf)
   - [Video](https://www.youtube.com/watch?v=hpr8pxqkCH8&t=0s&list=PLuwyh42iHquU4hUBQs20hkBsKSMrp6H0J&index=9)
-  - [Code for figures](https://rawgit.com/avehtari/modelselection_tutorial/master/cv_basics.html)
+  - [Code for figures](https://avehtari.github.io/modelselection/cv_basics.html)
 * Regularized horseshoe talk at StanCon 2018 Asilomar
   - [Slides](regularizedhorseshoe_slides.pdf)
   - [Video](https://www.youtube.com/watch?v=umk7eOkt5k8)
@@ -18,18 +21,18 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 ### Outline of the StanCon 2018 Asilomar tutorial and links to notebooks
 * Basics of predictive performance estimation
 * When cross-validation is not needed
-  * Simple model we trust - [betablockers](https://rawgit.com/avehtari/modelselection_tutorial/master/betablockers.html)
+  * Simple model we trust - [betablockers](https://avehtari.github.io/modelselection/betablockers.html)
 * When cross-validation is useful
-  * We don't trust the model - [roaches](https://rawgit.com/avehtari/modelselection_tutorial/master/roaches.html)
-  * Complex model with posterior dependencies - [collinear](https://rawgit.com/avehtari/modelselection_tutorial/master/collinear.html)
+  * We don't trust the model - [roaches](https://avehtari.github.io/modelselection/roaches.html)
+  * Complex model with posterior dependencies - [collinear](https://avehtari.github.io/modelselection/collinear.html)
 * On accuracy of cross-validation
 * Cross-validation and hierarchical models
 * When cross-validation is not enough
-  * large number of models - [diabetes](https://rawgit.com/avehtari/modelselection_tutorial/master/diabetes.html)
+  * large number of models - [diabetes](https://avehtari.github.io/modelselection/diabetes.html)
 * [loo 2.0](http://mc-stan.org/loo/)
 * Projection predictive model selection
-  * [collinear](https://rawgit.com/avehtari/modelselection_tutorial/master/collinear.html)
-  * [diabetes](https://rawgit.com/avehtari/modelselection_tutorial/master/diabetes.html)
+  * [collinear](https://avehtari.github.io/modelselection/collinear.html)
+  * [diabetes](https://avehtari.github.io/modelselection/diabetes.html)
   * [projpred](https://github.com/stan-dev/projpred)
 
 ### Additional case studies
@@ -37,12 +40,12 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * [loo 2.0](http://mc-stan.org/loo/)
   * [Bayesian Stacking and Pseudo-BMA weights using the loo package](http://mc-stan.org/loo/articles/loo2-weights.html)
   * [Leave-one-out cross-validation for non-factorizable models](http://mc-stan.org/loo/articles/loo2-non-factorizable.html)
-  * [m-step-ahead cross-validation for time series](https://rawgit.com/paul-buerkner/m-step-ahead-predictions/master/m-step-ahead-predictions.html)
+  * [Approximate leave-future-out cross-validation for time series models](http://mc-stan.org/loo/articles/loo2-lfo.html)
 * Projection predictive model selection (projpred) examples
-  * collinearity - [mesquite](https://rawgit.com/avehtari/modelselection_tutorial/master/mesquite.html)
-  * random data vs original data - [candy](https://rawgit.com/avehtari/modelselection_tutorial/master/candy.html)
-  * [winequality-red](https://rawgit.com/avehtari/modelselection_tutorial/master/winequality-red.html)
-  * [bodyfat](https://rawgit.com/avehtari/modelselection_tutorial/master/bodyfat.html)
+  * collinearity - [mesquite](https://avehtari.github.io/modelselection/mesquite.html)
+  * random data vs original data - [candy](https://avehtari.github.io/modelselection/candy.html)
+  * [winequality-red](https://avehtari.github.io/modelselection/winequality-red.html)
+  * [bodyfat](https://avehtari.github.io/modelselection/bodyfat.html)
   * See also [projpred quick start vignette](https://rawgit.com/stan-dev/projpred/master/vignettes/quickstart.html)
 * [LOO-R^2](https://avehtari.github.io/bayes_R2/bayes_R2.html)
 
@@ -55,10 +58,16 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 
 ### References
 
+* Bürkner, P.-C., Gabry, J., Vehtari, A. (2018). Leave-one-out
+  cross-validation for non-factorizable normal
+  models. [arXiv:1810.10559](https://arxiv.org/abs/arXiv:1810.10559)
 * Gelman, A., Hwang, J., and Vehtari, A. (2014). Understanding
   predictive information criteria for Bayesian models. Statistics and
   Computing, 24(6):997–1016.
   [Preprint](http://www.stat.columbia.edu/~gelman/research/published/waic_understand3.pdf)
+* Piironen, J., Paasiniemi, M., and Vehtari, A. (2018). Projective
+  Inference in High-dimensional Problems: Prediction and Feature
+  Selection. [arXiv:1810.02406](https://arxiv.org/abs/arXiv:1810.02406)
 * Piironen, J. and Vehtari, A. (2016), Comparison of Bayesian
   predictive methods for model selection, Statistics and Computing
   27(3), 711–735. [Online](https://doi.org/10.1007/s11222-016-9649-y)
@@ -90,6 +99,9 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * Vehtari, A. and Ojanen, J.: 2012, A survey of Bayesian predictive
   methods for model assessment, selection and comparison, Statistics
   Surveys 6, 142–228. [Online](https://doi.org/10.1214/12-SS102)
+* Williams, D. R., Piironen, J., Vehtari, A., and Rast,
+  P. (2018). Bayesian estimation of Gaussian graphical models with
+  projection predictive selection. [arXiv:1801.05725](https://arxiv.org/abs/1801.05725)
 * Yao, Y., Vehtari, A., Simpson, D., and Gelman, A. (2017). Using
   stacking to average Bayesian predictive distributions. In Bayesian
   Analysis, doi:10.1214/17-BA1091,
