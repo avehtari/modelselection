@@ -7,7 +7,7 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * Model assessment, comparison and selection at Master class in Bayesian statistics, CIRM, Marseille
   - [Slides](slides_model_assesment_selection.pdf)
   - [Video](https://library.cirm-math.fr/Record.htm?idlist=157&record=19285597124910037799)
-* Model assessmen and model selection aka Basics of cross-validation tutorial at StanCon 2018 Helsinki
+* Model assessment and model selection aka Basics of cross-validation tutorial at StanCon 2018 Helsinki
   - [Slides](Vehtari_StanHEL_CV.pdf)
   - [Video](https://www.youtube.com/watch?v=hpr8pxqkCH8&t=0s&list=PLuwyh42iHquU4hUBQs20hkBsKSMrp6H0J&index=9)
   - [Code for figures](https://avehtari.github.io/modelselection/cv_basics.html)
