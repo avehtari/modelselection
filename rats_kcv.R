@@ -10,15 +10,12 @@
 #'     number_sections: TRUE
 #'     toc_float:
 #'       smooth_scroll: FALSE
+#' bibliography: modelsel.bib
+#' csl: harvard-cite-them-right.csl
 #' ---
 
-#' 
-#' 
-#' -------------
-#' 
-
 #' # Setup  {.unnumbered}
-
+#' 
 #+ setup, include=FALSE
 knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA)
 # switch this to TRUE to save figures in separate files
@@ -37,21 +34,18 @@ theme_set(bayesplot::theme_default(base_family = "sans"))
 #' # Introduction
 #'
 #' We demonstrate different cross-validation variants for hierarchical
-#' models. For time series specific cross-validation, see, ...
+#' models. [Related video](https://www.youtube.com/watch) discusses
+#' the examples used here starting at
+#' [22:53](https://www.youtube.com/watch?v=Re-2yVd0Mqk&t=22m53s).  For
+#' time series specific cross-validation, see @Burkner+Gabry+Vehtari:LFO-CV:2019.
 #'
 
 #' # Data
 #'
-#' Here we use a simple grouped data, but no group level covariates.
-#' The example data is taken from section 6 of Gelfand et al
-#' (1990) (also used in WinBUGS/OpenBUGS), and concerns 30 young
-#' rats whose weights were measured weekly for five week.
+#' Here we use a simple grouped data.  The example data is taken from
+#' section 6 of @Gelfand+etal:1990, and concerns 30 young rats whose
+#' weights were measured weekly for five week.
 #'
-#' Gelfand, A. E., Hills, S. E., Racine-Poon, A. and Smith, A. F. 
-#' M. (1990) Illustration of Bayesian Inference in Normal Data
-#' Models Using Gibbs Sampling. Journal of the American
-#' Statistical Association 85(412):972-985.
-#' 
 
 #' **Load data**
 sourceToList = function(file){
@@ -83,6 +77,7 @@ pr
 #' Just looking at the data it seems that if the rat growth would be
 #' modelled with linear model (up to age 36 days), individual intercept
 #' are likely and possibly also individual slopes.
+#' 
 
 #' # Models
 #'
@@ -91,11 +86,11 @@ pr
 #' hierarchical intercept and slope terms.
 #' 
 #' **Simple linear model**
-fit_1 <- stan_glm(weight ~ age, data=dfrats)
+fit_1 <- stan_glm(weight ~ age, data=dfrats, refresh=0)
 #' **Linear model with hierarchical intercept**
-fit_2 <- stan_glmer(weight ~ age + (1 | rat), data=dfrats)
+fit_2 <- stan_glmer(weight ~ age + (1 | rat), data=dfrats, refresh=0)
 #' **Linear model with hierarchical intercept and slope**
-fit_3 <- stan_glmer(weight ~ age + (age | rat), data=dfrats)
+fit_3 <- stan_glmer(weight ~ age + (age | rat), data=dfrats, refresh=0)
 
 #' # Leave-one-out cross-validation
 #'
@@ -105,12 +100,12 @@ pr1 <- pr +
     geom_point(data=dfrats[69,], color="red", size=5, shape=1) +
     ggtitle('Leave-one-out')
 pr1
-#' This useful (and valid) if we are interested in model fit in
+#' This useful and valid if we are interested in model fit in
 #' general, we would use the model to predict random missing data, or
 #' if we were comparing different conditional observation models.
 #'
-#' loo package offers fast Pareto smoothed importance sampling
-#' approximation
+#' `loo` package offers fast Pareto smoothed importance sampling
+#' approximation [@Vehtari+etal:PSIS-LOO:2017,Vehtari+etal:PSIS:2017]
 loo_1 <- loo(fit_1)
 loo_2 <- loo(fit_2)
 loo_3 <- loo(fit_3)
@@ -121,7 +116,7 @@ loo_3
 #' has 2 rat specific parameters, some of the observations are highly
 #' influential and PSIS-LOO is not able to give reliable estimate (if
 #' PSIS-LOO fails, WAIC fails, too, but failure of WAIC is more
-#' difficult to diagnose)
+#' difficult to diagnose [@Vehtari+etal:PSIS-LOO:2017])
 #'
 #' We can run exact LOO-CV for the failing folds.
 (loo_3 <- loo(fit_3, k_threshold=0.7))
@@ -133,6 +128,7 @@ compare_models(loo_1, loo_2, loo_3)
 #' Model 3 is slightly better than model 2. Model 1 is clearly worst.
 #' Knowing all the other observations except one, it is beneficial to
 #' have individual intercept and slope terms.
+#' 
 
 #' # K-fold cross-validation
 #'
@@ -175,7 +171,7 @@ compare_models(cv30r_1, cv30r_2, cv30r_3)
 #' lower than with LOO, and the difference is larger for K=10 and
 #' increases with model complexity, which is due to model fitted to
 #' less observations than in LOO.
-
+#' 
 
 #' ## Stratified K-fold approximation of LOO
 #' 
@@ -213,6 +209,7 @@ compare_models(cv30s_1, cv30s_2, cv30s_3)
 #' in LOO. For hierarchical models, the results with K=10 and k=30 are
 #' closer to each other than in case of complete random division, as
 #' stratified division balances the data division.
+#' 
 
 #' ## Grouped K-fold for leave-one-group-out
 #' 
@@ -229,11 +226,12 @@ compare_models(cv30s_1, cv30s_2, cv30s_3)
 #' lot if all observations in that group are removed leading to
 #' failure of importance sampling. For certain models quadrature
 #' methods could be used to compute integrated (marginalized)
-#' importance sampling (cite Furr et al), but that is not implemented
-#' in rstanarm.
+#' importance sampling [@Merkle+Furr+Rabe-Hesketh:2018].
 #' 
-#' Helper function `kfold_split_grouped` can be used to form a
-#' grouped division.
+#' Helper function `kfold_split_grouped` can be used to form a grouped
+#' division. With K=30 we have leave-one-rat-out.  with K=10 we get
+#' faster computation by leaving 3 rats out at time, but the results
+#' are likely to be similar with K=30.
 cv10gfolds <- kfold_split_grouped(K = 10, x = dfrats$rat)
 cv30gfolds <- kfold_split_grouped(K = 30, x = dfrats$rat)
 #' Illustrate the first fold with K=30
@@ -259,8 +257,9 @@ compare_models(cv30g_1, cv30g_2, cv30g_3)
 #' difference if we predict with population curve and normal
 #' distribution with large scale or predict with uncertain individual
 #' curves and and normal distribution with small scale.
+#' 
 
-#' In above model comparison se_diff was computed without taking into
+#' In the above model comparison se_diff was computed without taking into
 #' account the grouping structure. More accurate computation would
 #' first compute group specific elpd.
 cvgfix <- function(cv, cvidx) {
@@ -272,7 +271,8 @@ cvgfix <- function(cv, cvidx) {
     cv$estimates[2] <- cv$se_elpd_kfold
     cv
 }
-#' note that we use 30-folds to group elpds also for 10-fold-CV
+#' note that to sum pointwise elpds for each rat we use 30-fold
+#' information also when grouping elpds from 10-fold-CV
 cv10gg_1 <- cvgfix(cv10g_1, cv30gfolds)
 cv10gg_2 <- cvgfix(cv10g_2, cv30gfolds)
 cv10gg_3 <- cvgfix(cv10g_3, cv30gfolds)
@@ -286,6 +286,7 @@ compare_models(cv30gg_1, cv30gg_2, cv30gg_3)
 #' Groupwise computation doesn't change elpd differences, but changes
 #' se_diff's which are now smaller, implying a bit more accuracy in
 #' the comparison, but the differences are still small.
+#' 
 
 #' ## Grouped K-fold for prediction given initial weight
 #'
@@ -322,7 +323,6 @@ cvxxfix <- function(cv, cvidx) {
     cv$estimates[2] <- cv$se_elpd_kfold
     cv
 }
-#' note that we use 30-folds to group elpds also for 10-fold-CV
 cv10xx_1 <- cvxxfix(cv10x_1, cv30xfolds)
 cv10xx_2 <- cvxxfix(cv10x_2, cv30xfolds)
 cv10xx_3 <- cvxxfix(cv10x_3, cv30xfolds)
@@ -333,26 +333,29 @@ compare_models(cv10xx_1, cv10xx_2, cv10xx_3)
 #' the models is the same. Model 1 is clearly worse. Knowing the
 #' initial weight, we get quite similar predictive accuracy with
 #' common slope or hierarchical slope model.
+#' 
 
-#' ## Grouped K-fold for prediction given initial weight alternative version
-#'
+#' # Alternative models for the prediction given initial weight
+#' 
 #' If the prediction given initial weight would be interesting task,
 #' we could formulate also in different way, which would also
 #' illustrate group specific covariate approach.
-
+#' 
 #' **Create dataframe**
 dfrats2 <- with(rats, data.frame(age=x[x>8], age_c=x[x>8]-25.5, weight=y[x>8], rat=rat[x>8],
                                  initweight_c = rep(y[x==8],4)-mean(y[x==8])))
 
-#' ## Alternative models
+#' ## Models
 #'
 #' **Simple linear model**
-fit2_1 <- stan_glm(weight ~ initweight_c + age_c, data=dfrats2)
+fit2_1 <- stan_glm(weight ~ initweight_c + age_c, data=dfrats2, refresh=0)
 #' **Linear model with hierarchical intercept**
-fit2_2 <- stan_glmer(weight ~ initweight_c + age_c + (1 | rat), data=dfrats2)
+fit2_2 <- stan_glmer(weight ~ initweight_c + age_c + (1 | rat), data=dfrats2, refresh=0)
 #' **Linear model with hierarchical intercept and slope**
-fit2_3 <- stan_glmer(weight ~ initweight_c + age_c + (age_c | rat), data=dfrats2)
+fit2_3 <- stan_glmer(weight ~ initweight_c + age_c + (age_c | rat), data=dfrats2, refresh=0)
 
+#' ## Grouped K-fold for prediction given initial weight
+#' 
 #' Helper function `kfold_split_grouped` can be used to form a
 #' grouped division.
 cv10g2folds <- kfold_split_grouped(K = 10, x = dfrats2$rat)
@@ -363,6 +366,7 @@ cv10g2_1 <- rstanarm::kfold(fit2_1, K=10, folds = cv10g2folds)
 cv10g2_2 <- rstanarm::kfold(fit2_2, K=10, folds = cv10g2folds)
 cv10g2_3 <- rstanarm::kfold(fit2_3, K=10, folds = cv10g2folds)
 
+#' Compute groupwise elpds
 cv10gg2_1 <- cvgfix(cv10g2_1, cv30g2folds)
 cv10gg2_2 <- cvgfix(cv10g2_2, cv30g2folds)
 cv10gg2_3 <- cvgfix(cv10g2_3, cv30g2folds)
@@ -372,3 +376,28 @@ compare_models(cv10gg2_1, cv10gg2_2, cv10gg2_3)
 #' Model 3 is clearly the best. When the model includes the initial
 #' weight, the hierarchical intercept term doesn't improve prediction
 #' accuracy, but hierarchical slopes do.
+#' 
+
+#' # Conclusion
+#'
+#' In all comparison the model 3 was best and model 2 the second best,
+#' but depending on the structure used in the cross-validation the
+#' differences between models were bigger or smaller.
+#'
+#' 
+#' <br />
+#' 
+#' # References {.unnumbered}
+#' 
+#' <div id="refs"></div>
+#' 
+#' # Licenses {.unnumbered}
+#' 
+#' * Code &copy; 2019, Aki Vehtari, licensed under BSD-3.
+#' * Text &copy; 2019, Aki Vehtari, licensed under CC-BY-NC 4.0.
+#' 
+#' # Original Computing Environment {.unnumbered}
+#' 
+sessionInfo()
+#' 
+#' <br />
