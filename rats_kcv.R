@@ -383,6 +383,11 @@ compare_models(cv10gg2_1, cv10gg2_2, cv10gg2_3)
 #' In all comparison the model 3 was best and model 2 the second best,
 #' but depending on the structure used in the cross-validation the
 #' differences between models were bigger or smaller.
+#' 
+#' Throughout this case study, we have used **rstanarm** for the model fitting.
+#' If instead you prefer to use **brms**, the `loo` and `kfold` methods
+#' and their primary arguments will continue to work in the same way.
+#' 
 #'
 #' 
 #' <br />
