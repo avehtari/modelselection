@@ -94,9 +94,11 @@ Load data and scale it. Heinze, Wallisch, and Dunkler (2018) used unscaled data,
 ```{r}
 df <- read.table(here("bodyfat.txt"), header = T, sep = ";")
 df[,4:19] <- scale(df[,4:19])
+# no-one can have 0% body fat
+df <- df[df$siri>0,]
+y <- df[,"siri"]
 df <- as.data.frame(df)
 n <- nrow(df)
-colnames(df[c("weight_kg", "height")]) <- c("weight", "height")
 ```   
 
 Lists of predictive and target variables, and formula.
@@ -130,6 +132,15 @@ fitrhs <- stan_glm(formula, data = df, prior=rhs_prior, QR=TRUE,
 summary(fitrhs)
 ```
 
+Make graphical posterior predictive check to check that the model
+predictions make sense.
+```{r}
+yrep <- posterior_predict(fitrhs, draws = 50)
+ppc_dens_overlay(y, yrep)
+```
+
+Kernel density estimate for the data and posterior predictive replicates are similar. Although data do not have any negative $y$ values, the kernel density estimate is smoothing over to the negative side. The predictive distribution of the model is noy constrained to be positive, but the error is small and we continue with the variable selection.
+
 Plot marginal posterior of the coefficients.
 ```{r}
 mcmc_areas(as.matrix(fitrhs)[,2:14])
@@ -138,7 +149,7 @@ mcmc_areas(as.matrix(fitrhs)[,2:14])
 We can see that the posterior of abdomen coefficient is far away from
 zero, but it's not as clear what other variables should be included. `weight` has wide marginal overlapping zero, which hints potentially relevant variable with correlation in joint posterior.
 
-Looking at th marginals has the problem that correlating variables may
+Looking at the marginals has the problem that correlating variables may
 have marginal posteriors overlapping zero while joint posterior
 typical set does not include zero. Compare, for example, marginals of `height`
 and `height` above to their joint distribution below.
@@ -165,7 +176,7 @@ fitrhs_cvvs$vind
 
 And the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitrhs_cvvs, stats = c('elpd', 'rmse'), deltas=T)
+varsel_plot(fitrhs_cvvs, stats = c('elpd', 'rmse'), deltas=FALSE)
 ```
 
 Based on the plot 2 variables and projected posterior provide
