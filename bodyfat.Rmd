@@ -459,7 +459,7 @@ tau0 <- p0/(p-p0) * 1/sqrt(n)
 hs_prior <- hs(global_scale=tau0)
 fitrhs2 <- stan_glm(formula2, data = dfr, prior = hs_prior, QR = TRUE, 
                    seed=SEED, refresh=0)
-fitrhs2_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'LOO',
+fitrhs2_cvvs <- cv_varsel(fitrhs2, method = 'forward', cv_method = 'LOO',
                           nloo=n, verbose = FALSE)
 loormse_full2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$ref$mu)^2))
 loormse_proj2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$sub[[nv]]$mu)^2))
