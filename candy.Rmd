@@ -80,7 +80,7 @@ fit0 <- stan_glm(ry ~ 1, data = dfr, seed=SEED, refresh=0)
 ```{r}
 (loorhs <- loo(fitrhs))
 (loo0 <- loo(fit0))
-compare_models(loo0, loorhs)
+loo_compare(loo0, loorhs)
 ```
 
 Based on cross-validation covariates together do not contain any useful information, and there is no need to continue with variable selection. This step of checking whether full mode has any predictive power is often ignored especially when non-Bayesian methods are used. If loo (or AIC as Joshua Loftus demonstrated) would be used for stepwise variable selection it is possible that selection process over a large number of models overfits to the data.
@@ -96,7 +96,7 @@ fitrhs_cv$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitrhs_cv, stats = c('elpd', 'rmse'), deltas=TRUE)
+varsel_plot(fitrhs_cv, stats = c('elpd', 'rmse'))
 ```
 
 We can see that the differences to the full model are very small.
@@ -143,7 +143,7 @@ fit0 <- stan_glm(winpercent ~ 1, data = df, seed=SEED, refresh=0)
 ```{r}
 (loorhs <- loo(fitrhs))
 (loo0 <- loo(fit0))
-compare_models(loo0, loorhs)
+loo_compare(loo0, loorhs)
 ```
 
 Based on cross-validation covariates together do contain useful information. If we need just the predictions we can stop here, but if we want to learn more about the relevance of the covariates we can continue with variable selection.
@@ -159,7 +159,7 @@ fitrhs_cv$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitrhs_cv, stats = c('elpd', 'rmse'), deltas=TRUE)
+varsel_plot(fitrhs_cv, stats = c('elpd', 'rmse'))
 ```
 
 Only one variable seems to be needed to get the same performance as the full model.
