@@ -17,16 +17,16 @@ csl: harvard-cite-them-right.csl
 # Setup  {.unnumbered}
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
 
 **Load packages**
 ```{r}
 library(rstanarm)
-library(rstan)
 options(mc.cores = parallel::detectCores())
 library(loo)
 library(shinystan)
+library(ggplot2)
 library(bayesplot)
 theme_set(bayesplot::theme_default(base_family = "sans"))
 library(ggplot2)

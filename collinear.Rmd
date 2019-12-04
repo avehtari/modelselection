@@ -17,7 +17,7 @@ csl: harvard-cite-them-right.csl
 # Setup  {.unnumbered}
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
 
 **Load packages**
@@ -28,6 +28,7 @@ library(loo)
 library(tidyverse)
 library(GGally)
 library(bayesplot)
+theme_set(bayesplot::theme_default())
 library(projpred)
 SEED=87
 ```
@@ -43,7 +44,7 @@ We generate the data used previously to illustrate multi-collinearity problems.
 # all this data generation is from Cade 2015
 # doesn't matter what this is -- if you use a different number your results will be different from mine.
 set.seed(SEED)
-df <- data_frame(
+df <- tibble(
   pos.tot = runif(200,min=0.8,max=1.0),
   urban.tot = pmin(runif(200,min=0.0,max=0.02),1.0 - pos.tot),
   neg.tot = (1.0 - pmin(pos.tot + urban.tot,1)),
