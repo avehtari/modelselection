@@ -267,7 +267,7 @@ __rstanarm__ supports __loo__ package which implements fast Pareto smoothed leav
 (loo1 <- loo(post1, save_psis = TRUE))
 ```
 
-Above we see that PSIS-LOO result is reliable as all Pareto $k$ estimates are small (k< 0.5) [@Vehtari+etal:PSIS-LOO:2017, @Vehtari+etal:PSIS:2017].
+Above we see that PSIS-LOO result is reliable as all Pareto $k$ estimates are small (k< 0.5) [@Vehtari+etal:PSIS-LOO:2017; @Vehtari+etal:PSIS:2019].
 
 ## Comparison to a baseline model
 
@@ -280,7 +280,7 @@ Compare to baseline
 (loo0 <- loo(post0))
 ```
 ```{r}
-compare_models(loo0, loo1)
+loo_compare(loo0, loo1)
 ```
 Covariates contain clearly useful information for predictions.
 
@@ -358,7 +358,7 @@ t_prior <- student_t(df = 7, location = 0, scale = 2.5)
 post2 <- stan_glm(outcome ~ ., data = diabetes,
                  family = binomial(link = "logit"), 
                  prior = hs_prior, prior_intercept = t_prior,
-                 seed = SEED, adapt_delta = 0.999)
+                 seed = SEED, adapt_delta = 0.9)
 ```
 
 We see that the regularized horseshoe prior has shrunk the posterior distribution of irrelevant features closer to zero, without affecting the posterior distribution of the relevant features.
@@ -380,7 +380,7 @@ We compute LOO also for the model with the regularized horseshoe prior. Expected
 ```
 
 ```{r}
-compare_models(loo1, loo2)
+loo_compare(loo1, loo2)
 ```
 
 Looking at the pairwise posteriors we can see that, for example, posteriors for age and pregnancies effects are correlating and thus we can't relay on infering variable relevance by looking at the marginal distributions.
@@ -401,7 +401,7 @@ varsel2$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=FALSE)
+varsel_plot(varsel2, stats = c('elpd', 'pctcorr'))
 ```
 
 And we get a LOO based recommendation for the model size to choose
@@ -432,7 +432,7 @@ post3 <- stan_gamm4(outcome ~ s(glucose) + s(age) + s(bmi), data = diabetes,
 ```
 ```{r}
 (loo3 <- loo(post3, save_psis = TRUE))
-compare_models(loo1, loo3)
+loo_compare(loo1, loo3)
 ```
 Based on LOO, non-linear model might be better, but the difference is not big.
 
