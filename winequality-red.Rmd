@@ -17,15 +17,16 @@ csl: harvard-cite-them-right.csl
 # Setup  {.unnumbered}
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
 
 **Load packages**
 ```{r}
+library(rstan)
 library(rstanarm)
-options(mc.cores = parallel::detectCores())
 library(loo)
 library(bayesplot)
+theme_set(bayesplot::theme_default())
 library(projpred)
 SEED=170701694
 ```
@@ -64,7 +65,7 @@ fitg <- stan_glm(quality ~ ., data = df, QR=TRUE, seed=SEED, refresh=0)
 ```
 Let's look at the summary:
 ```{r}
-summary(fitg)
+monitor(fitg$stanfit)
 ```
 
 We didn't get divergences, Rhat's are less than 1.1 and n_eff's are useful (see, e.g., [RStan workflow](http://mc-stan.org/users/documentation/case-studies/rstan_workflow.html)).
@@ -86,7 +87,7 @@ We use fast Pareto smoothed importance sampling leave-one-out cross-validation [
 ```{r}
 (loog <- loo(fitg))
 (loog0 <- loo(fitg0))
-compare_models(loog0, loog)
+loo_compare(loog0, loog)
 ```
 
 Based on cross-validation covariates together have a high predictive power. If we need just the predictions we can stop here, but if we want to learn more about the relevance of the covariates we can continue with variable selection.
@@ -104,7 +105,7 @@ fitg_cv$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=TRUE)
+varsel_plot(fitg_cv, stats = c('elpd', 'rmse'))
 ```
 
 Three or four variables seems to be needed to get the same performance as the full model.
@@ -145,7 +146,7 @@ The posteriors with normal and regularized horseshoe priors are clearly differen
 
 ```{r}
 (loorhs <- loo(fitrhs))
-compare_models(loog, loorhs)
+loo_compare(loog, loorhs)
 ```
 There is no difference in predictive performance and thus we don't need to repeat the projpred variable selection for the model with regularized horseshoe prior.
 
