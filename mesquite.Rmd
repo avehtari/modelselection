@@ -144,7 +144,7 @@ The model with variables has one bad Pareto $k$ value [@Vehtari+etal:PSIS-LOO:20
 
 And then we can compare the models.
 ```{r}
-compare_models(loog0, loog)
+loo_compare(loog0, loog)
 ```
 Based on cross-validation covariates together contain significant information to improve predictions.
 
@@ -165,7 +165,7 @@ fitg_cv$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=TRUE)
+varsel_plot(fitg_cv, stats = c('elpd', 'rmse'))
 ```
 
 And we get a loo-cv based recommendation for the model size to choose
