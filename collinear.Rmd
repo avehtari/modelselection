@@ -108,7 +108,7 @@ fitg0 <- stan_glm(y ~ 1, data = df, na.action = na.fail, family=poisson(), seed=
 ```{r}
 (loog <- loo(fitg))
 (loog0 <- loo(fitg0))
-compare_models(loog0, loog)
+loo_compare(loog0, loog)
 ```
 Based on cross-validation covariates together contain significant information to improve predictions.
 
@@ -131,7 +131,7 @@ fitg_cv$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('elpd', 'rmse'), deltas=T)
+varsel_plot(fitg_cv, stats = c('elpd', 'rmse'))
 ```
 
 And we get a LOO based recommendation for the model size to choose
