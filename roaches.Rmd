@@ -97,9 +97,9 @@ stan_glmm3p <- update(stan_glmp, formula = y ~ roach1 + treatment)
 
 Although Pareto $k$ values were very large we can make a quick test with PSIS-LOO (if the comparison would say there is difference, then PSIS-LOO couldn't be trusted and PSIS-LOO+ or k-fold-CV woul be needed [see more in @Vehtari+etal:PSIS-LOO:2017]).
 ```{r}
-compare_models(loo(stan_glmm1p), loop)
-compare_models(loo(stan_glmm2p), loop)
-compare_models(loo(stan_glmm3p), loop)
+loo_compare(loo(stan_glmm1p), loop)
+loo_compare(loo(stan_glmm2p), loop)
+loo_compare(loo(stan_glmm3p), loop)
 ```
 Based on this the roaches covariate would be relevant, but although dropping treatment or senior covariate will make a large chnage to elpd, the uncertainty is also large and cross-validation states that these covariates are not necessarily relevant! The posterior marginals are conditional on the model, but cross-validation is more cautios by not using any model for the future data distribution.
 
@@ -144,7 +144,7 @@ Let's check PSIS-LOO Pareto $k$ diagnostics
 All khat's are ok, which indicates that negative-Binomial would be
 better (for final results it would be good to run PSIS-LOO+). We can also compare Poisson and negative-Binomial.
 ```{r}
-compare_models(loop, loonb)
+loo_compare(loop, loonb)
 ```
 Negative-Binomial model is clearly better than Poisson.
 
@@ -172,9 +172,9 @@ stan_glmm3nb <- update(stan_glmm3p, family = neg_binomial_2)
 ```
 
 ```{r}
-compare_models(loo(stan_glmm1nb),loonb)
-compare_models(loo(stan_glmm2nb),loonb)
-compare_models(loo(stan_glmm3nb),loonb)
+loo_compare(loo(stan_glmm1nb),loonb)
+loo_compare(loo(stan_glmm2nb),loonb)
+loo_compare(loo(stan_glmm3nb),loonb)
 ```
 Roaches1 has clear effect. Treatment effect was visible in posterior, but as discussed in betablockers demo, cross-validation is not good for detecting weak effects. Based on cross-validation senior effect is also not relevant.
 
