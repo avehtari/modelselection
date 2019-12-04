@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Aki Vehtari" />
@@ -68,8 +69,6 @@ overflow: auto;
 margin-left: 2%;
 position: fixed;
 border: 1px solid #ccc;
-webkit-border-radius: 6px;
-moz-border-radius: 6px;
 border-radius: 6px;
 }
 
@@ -97,9 +96,14 @@ font-size: 12px;
 .tocify-subheader .tocify-subheader {
 text-indent: 30px;
 }
-
 .tocify-subheader .tocify-subheader .tocify-subheader {
 text-indent: 40px;
+}
+.tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader {
+text-indent: 50px;
+}
+.tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader {
+text-indent: 60px;
 }
 
 .tocify .tocify-item > a, .tocify .nav-list .nav-header {
@@ -503,13 +507,13 @@ float: none;
 
           item.append($("<a/>", {
 
-            "text": self.text()
+            "html": self.html()
 
           }));
 
         } else {
 
-          item.text(self.text());
+          item.html(self.html());
 
         }
 
@@ -1326,9 +1330,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type="text/css">
 .main-container {
@@ -1342,7 +1344,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -1359,8 +1360,6 @@ summary {
 </style>
 
 
-
-<div class="container-fluid main-container">
 
 <!-- tabsets -->
 
@@ -1418,48 +1417,9 @@ summary {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
 
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = false;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -1508,8 +1468,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -1518,6 +1476,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -1536,8 +1504,8 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Cross-validation for hierarchical models</h1>
-<h4 class="author"><em>Aki Vehtari</em></h4>
-<h4 class="date"><em>First version 2019-03-11. Last modified 2019-03-12.</em></h4>
+<h4 class="author">Aki Vehtari</h4>
+<h4 class="date">First version 2019-03-11. Last modified 2019-12-04.</h4>
 
 </div>
 
@@ -1656,15 +1624,11 @@ All Pareto k estimates are ok (k &lt; 0.7).
 See help('pareto-k-diagnostic') for details.</code></pre>
 <p>We see that PSIS-LOO estimated elpd_loo for model 3 was too optimistic by 2.6, and also SE was underestimated.</p>
 <p>We can now safely do the model comparison</p>
-<pre class="r"><code>compare_models(loo_1, loo_2, loo_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff elpd_loo p_loo  looic 
-fit_3    0.0       0.0  -522.8     53.7 1045.6
-fit_2  -23.6       9.3  -546.4     28.4 1092.9
-fit_1 -109.6      13.3  -632.4      3.7 1264.9</code></pre>
+<pre class="r"><code>loo_compare(loo_1, loo_2, loo_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3    0.0       0.0 
+model2  -23.6       9.3 
+model1 -109.6      13.3 </code></pre>
 <p>Model 3 is slightly better than model 2. Model 1 is clearly worst. Knowing all the other observations except one, it is beneficial to have individual intercept and slope terms.</p>
 </div>
 <div id="k-fold-cross-validation" class="section level1">
@@ -1690,24 +1654,16 @@ cv30r_1 &lt;- rstanarm::kfold(fit_1, K=30, folds = cv30rfolds)
 cv30r_2 &lt;- rstanarm::kfold(fit_2, K=30, folds = cv30rfolds)
 cv30r_3 &lt;- rstanarm::kfold(fit_3, K=30, folds = cv30rfolds)</code></pre>
 <p>Compare models</p>
-<pre class="r"><code>compare_models(cv10r_1, cv10r_2, cv10r_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3    0.0       0.0 
-fit_2  -26.2      11.2 
-fit_1 -110.1      15.6 </code></pre>
-<pre class="r"><code>compare_models(cv30r_1, cv30r_2, cv30r_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3    0.0       0.0 
-fit_2  -22.4       9.7 
-fit_1 -108.0      13.6 </code></pre>
+<pre class="r"><code>loo_compare(cv10r_1, cv10r_2, cv10r_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3    0.0       0.0 
+model2  -26.2      11.2 
+model1 -110.1      15.6 </code></pre>
+<pre class="r"><code>loo_compare(cv30r_1, cv30r_2, cv30r_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3    0.0       0.0 
+model2  -22.4       9.7 
+model1 -108.0      13.6 </code></pre>
 <p>The results are similar to LOO. In both cases elpd’s are slightly lower than with LOO, and the difference is larger for K=10 and increases with model complexity, which is due to model fitted to less observations than in LOO.</p>
 </div>
 <div id="stratified-k-fold-approximation-of-loo" class="section level2">
@@ -1730,24 +1686,16 @@ cv30s_1 &lt;- rstanarm::kfold(fit_1, K=30, folds = cv30sfolds)
 cv30s_2 &lt;- rstanarm::kfold(fit_2, K=30, folds = cv30sfolds)
 cv30s_3 &lt;- rstanarm::kfold(fit_3, K=30, folds = cv30sfolds)</code></pre>
 <p>Compare models</p>
-<pre class="r"><code>compare_models(cv10s_1, cv10s_2, cv10s_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3    0.0       0.0 
-fit_2  -20.9       9.7 
-fit_1 -105.9      13.6 </code></pre>
-<pre class="r"><code>compare_models(cv30s_1, cv30s_2, cv30s_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3    0.0       0.0 
-fit_2  -22.6       9.8 
-fit_1 -108.3      13.5 </code></pre>
+<pre class="r"><code>loo_compare(cv10s_1, cv10s_2, cv10s_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3    0.0       0.0 
+model2  -20.9       9.7 
+model1 -105.9      13.6 </code></pre>
+<pre class="r"><code>loo_compare(cv30s_1, cv30s_2, cv30s_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3    0.0       0.0 
+model2  -22.6       9.8 
+model1 -108.3      13.5 </code></pre>
 <p>The results are similar to LOO. In both cases elpd’s are slightly lower than with LOO, and the difference increases with model complexity, which is due to model fitted to less observations than in LOO. For hierarchical models, the results with K=10 and k=30 are closer to each other than in case of complete random division, as stratified division balances the data division.</p>
 </div>
 <div id="grouped-k-fold-for-leave-one-group-out" class="section level2">
@@ -1771,24 +1719,16 @@ cv30g_1 &lt;- rstanarm::kfold(fit_1, K=30, folds = cv30gfolds)
 cv30g_2 &lt;- rstanarm::kfold(fit_2, K=30, folds = cv30gfolds)
 cv30g_3 &lt;- rstanarm::kfold(fit_3, K=30, folds = cv30gfolds)</code></pre>
 <p>Compare models</p>
-<pre class="r"><code>compare_models(cv10g_1, cv10g_2, cv10g_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3  0.0       0.0   
-fit_1 -6.8       4.7   
-fit_2 -7.7       5.1   </code></pre>
-<pre class="r"><code>compare_models(cv30g_1, cv30g_2, cv30g_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3  0.0       0.0   
-fit_2 -5.1       3.7   
-fit_1 -6.5       4.9   </code></pre>
+<pre class="r"><code>loo_compare(cv10g_1, cv10g_2, cv10g_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3  0.0       0.0   
+model1 -6.8       4.7   
+model2 -7.7       5.1   </code></pre>
+<pre class="r"><code>loo_compare(cv30g_1, cv30g_2, cv30g_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3  0.0       0.0   
+model2 -5.1       3.7   
+model1 -6.5       4.9   </code></pre>
 <p>The results are very different compared to LOO. The order of the models is the same, but the difference are much smaller. As there is no rat specific covariate information, there is not much difference if we predict with population curve and normal distribution with large scale or predict with uncertain individual curves and and normal distribution with small scale.</p>
 <p>In the above model comparison se_diff was computed without taking into account the grouping structure. More accurate computation would first compute group specific elpd.</p>
 <pre class="r"><code>cvgfix &lt;- function(cv, cvidx) {
@@ -1808,24 +1748,16 @@ cv30gg_1 &lt;- cvgfix(cv30g_1, cv30gfolds)
 cv30gg_2 &lt;- cvgfix(cv30g_2, cv30gfolds)
 cv30gg_3 &lt;- cvgfix(cv30g_3, cv30gfolds)</code></pre>
 <p>Now we are comparing 30 groupwise elpds, instead of 150 pointwise elpds.</p>
-<pre class="r"><code>compare_models(cv10gg_1, cv10gg_2, cv10gg_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3  0.0       0.0   
-fit_1 -6.8       4.5   
-fit_2 -7.7       4.9   </code></pre>
-<pre class="r"><code>compare_models(cv30gg_1, cv30gg_2, cv30gg_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3  0.0       0.0   
-fit_2 -5.1       2.8   
-fit_1 -6.5       5.0   </code></pre>
+<pre class="r"><code>loo_compare(cv10gg_1, cv10gg_2, cv10gg_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3  0.0       0.0   
+model1 -6.8       4.5   
+model2 -7.7       4.9   </code></pre>
+<pre class="r"><code>loo_compare(cv30gg_1, cv30gg_2, cv30gg_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3  0.0       0.0   
+model2 -5.1       2.8   
+model1 -6.5       5.0   </code></pre>
 <p>Groupwise computation doesn’t change elpd differences, but changes se_diff’s which are now smaller, implying a bit more accuracy in the comparison, but the differences are still small.</p>
 </div>
 <div id="grouped-k-fold-for-prediction-given-initial-weight" class="section level2">
@@ -1860,15 +1792,11 @@ cv10xx_1 &lt;- cvxxfix(cv10x_1, cv30xfolds)
 cv10xx_2 &lt;- cvxxfix(cv10x_2, cv30xfolds)
 cv10xx_3 &lt;- cvxxfix(cv10x_3, cv30xfolds)</code></pre>
 <p>Compare models</p>
-<pre class="r"><code>compare_models(cv10xx_1, cv10xx_2, cv10xx_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-      elpd_diff se_diff
-fit_3   0.0       0.0  
-fit_2 -15.5      11.8  
-fit_1 -44.5      17.4  </code></pre>
+<pre class="r"><code>loo_compare(cv10xx_1, cv10xx_2, cv10xx_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3   0.0       0.0  
+model2 -15.5      11.8  
+model1 -44.5      17.4  </code></pre>
 <p>The results are different compared to LOO and LOGO. The order of the models is the same. Model 1 is clearly worse. Knowing the initial weight, we get quite similar predictive accuracy with common slope or hierarchical slope model.</p>
 </div>
 </div>
@@ -1901,15 +1829,11 @@ cv10g2_3 &lt;- rstanarm::kfold(fit2_3, K=10, folds = cv10g2folds)</code></pre>
 cv10gg2_2 &lt;- cvgfix(cv10g2_2, cv30g2folds)
 cv10gg2_3 &lt;- cvgfix(cv10g2_3, cv30g2folds)</code></pre>
 <p>Now we are comparing 30 groupwise elpds, instead of 150 pointwise elpds.</p>
-<pre class="r"><code>compare_models(cv10gg2_1, cv10gg2_2, cv10gg2_3)</code></pre>
-<pre><code>
-Model comparison: 
-(ordered by highest ELPD)
-
-       elpd_diff se_diff
-fit2_3   0.0       0.0  
-fit2_2 -15.6       5.9  
-fit2_1 -16.8       6.2  </code></pre>
+<pre class="r"><code>loo_compare(cv10gg2_1, cv10gg2_2, cv10gg2_3)</code></pre>
+<pre><code>       elpd_diff se_diff
+model3   0.0       0.0  
+model2 -15.6       5.9  
+model1 -16.8       6.2  </code></pre>
 <p>Model 3 is clearly the best. When the model includes the initial weight, the hierarchical intercept term doesn’t improve prediction accuracy, but hierarchical slopes do.</p>
 </div>
 </div>
@@ -2018,6 +1942,49 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

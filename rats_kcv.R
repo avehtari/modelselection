@@ -124,7 +124,7 @@ loo_3
 #' optimistic by 2.6, and also SE was underestimated.
 #' 
 #' We can now safely do the model comparison
-compare_models(loo_1, loo_2, loo_3)
+loo_compare(loo_1, loo_2, loo_3)
 #' Model 3 is slightly better than model 2. Model 1 is clearly worst.
 #' Knowing all the other observations except one, it is beneficial to
 #' have individual intercept and slope terms.
@@ -165,8 +165,8 @@ cv30r_2 <- rstanarm::kfold(fit_2, K=30, folds = cv30rfolds)
 cv30r_3 <- rstanarm::kfold(fit_3, K=30, folds = cv30rfolds)
 
 #' Compare models
-compare_models(cv10r_1, cv10r_2, cv10r_3)
-compare_models(cv30r_1, cv30r_2, cv30r_3)
+loo_compare(cv10r_1, cv10r_2, cv10r_3)
+loo_compare(cv30r_1, cv30r_2, cv30r_3)
 #' The results are similar to LOO. In both cases elpd's are slightly
 #' lower than with LOO, and the difference is larger for K=10 and
 #' increases with model complexity, which is due to model fitted to
@@ -201,8 +201,8 @@ cv30s_2 <- rstanarm::kfold(fit_2, K=30, folds = cv30sfolds)
 cv30s_3 <- rstanarm::kfold(fit_3, K=30, folds = cv30sfolds)
 
 #' Compare models
-compare_models(cv10s_1, cv10s_2, cv10s_3)
-compare_models(cv30s_1, cv30s_2, cv30s_3)
+loo_compare(cv10s_1, cv10s_2, cv10s_3)
+loo_compare(cv30s_1, cv30s_2, cv30s_3)
 #' The results are similar to LOO. In both cases elpd's are slightly
 #' lower than with LOO, and the difference increases with model
 #' complexity, which is due to model fitted to less observations than
@@ -249,8 +249,8 @@ cv30g_2 <- rstanarm::kfold(fit_2, K=30, folds = cv30gfolds)
 cv30g_3 <- rstanarm::kfold(fit_3, K=30, folds = cv30gfolds)
 
 #' Compare models
-compare_models(cv10g_1, cv10g_2, cv10g_3)
-compare_models(cv30g_1, cv30g_2, cv30g_3)
+loo_compare(cv10g_1, cv10g_2, cv10g_3)
+loo_compare(cv30g_1, cv30g_2, cv30g_3)
 #' The results are very different compared to LOO. The order of the
 #' models is the same, but the difference are much smaller. As there
 #' is no rat specific covariate information, there is not much
@@ -281,8 +281,8 @@ cv30gg_2 <- cvgfix(cv30g_2, cv30gfolds)
 cv30gg_3 <- cvgfix(cv30g_3, cv30gfolds)
 
 #' Now we are comparing 30 groupwise elpds, instead of 150 pointwise elpds.
-compare_models(cv10gg_1, cv10gg_2, cv10gg_3)
-compare_models(cv30gg_1, cv30gg_2, cv30gg_3)
+loo_compare(cv10gg_1, cv10gg_2, cv10gg_3)
+loo_compare(cv30gg_1, cv30gg_2, cv30gg_3)
 #' Groupwise computation doesn't change elpd differences, but changes
 #' se_diff's which are now smaller, implying a bit more accuracy in
 #' the comparison, but the differences are still small.
@@ -328,7 +328,7 @@ cv10xx_2 <- cvxxfix(cv10x_2, cv30xfolds)
 cv10xx_3 <- cvxxfix(cv10x_3, cv30xfolds)
 
 #' Compare models
-compare_models(cv10xx_1, cv10xx_2, cv10xx_3)
+loo_compare(cv10xx_1, cv10xx_2, cv10xx_3)
 #' The results are different compared to LOO and LOGO. The order of
 #' the models is the same. Model 1 is clearly worse. Knowing the
 #' initial weight, we get quite similar predictive accuracy with
@@ -372,7 +372,7 @@ cv10gg2_2 <- cvgfix(cv10g2_2, cv30g2folds)
 cv10gg2_3 <- cvgfix(cv10g2_3, cv30g2folds)
 
 #' Now we are comparing 30 groupwise elpds, instead of 150 pointwise elpds.
-compare_models(cv10gg2_1, cv10gg2_2, cv10gg2_3)
+loo_compare(cv10gg2_1, cv10gg2_2, cv10gg2_3)
 #' Model 3 is clearly the best. When the model includes the initial
 #' weight, the hierarchical intercept term doesn't improve prediction
 #' accuracy, but hierarchical slopes do.
