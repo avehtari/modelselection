@@ -17,19 +17,18 @@ csl: harvard-cite-them-right.csl
 # Setup
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
 
 **Load packages**
 ```{r}
 library(tidyr)
 library(rstanarm)
-library(rstan)
-options(mc.cores = parallel::detectCores())
 library(loo)
-library(shinystan)
 library(ggplot2)
+theme_set(bayesplot::theme_default())
 library(ggridges)
+library(bridgesampling)
 ```
 
 # Introduction
@@ -46,7 +45,7 @@ An experiment was performed to estimate the effect of beta-blockers on mortality
 - out of 674 patients receiving the control, 39 died
 - out of 680 receiving the treatment, 22 died
 
-Data, where grp2 is a dummy variable that captures the difference of
+Data, where `grp2` is a dummy variable that captures the difference of
 the intercepts in the first and the second group.
 ```{r}
 d_bin2 <- data.frame(N = c(674, 680), y = c(39,22), grp2 = c(0,1))
@@ -61,13 +60,14 @@ fit_bin2 <- stan_glm(y/N ~ grp2, family = binomial(), data = d_bin2,
                      weights = N, refresh=0)
 ```
 
-Plot odds ratio
+In general we recommend showing the full posterior of the quantity of
+interest, which in this case is the odds ratio.
 ```{r}
 samples_bin2 <- rstan::extract(fit_bin2$stanfit)
 theta1 <- plogis(samples_bin2$alpha)
 theta2 <- plogis(samples_bin2$alpha + samples_bin2$beta)
 oddsratio <- (theta2/(1-theta2))/(theta1/(1-theta1))
-ggplot() + geom_histogram(aes(oddsratio), bins = 50, fill = 'darkblue', color = 'black') +
+ggplot() + geom_histogram(aes(oddsratio), bins = 50, fill = 'grey', color = 'darkgrey') +
   labs(y = '') + scale_y_continuous(breaks = NULL)
 ```
 
@@ -78,12 +78,13 @@ print(mean(oddsratio<1),2)
 
 This posterior distribution of the odds-ratio (or some transformation
 of it) is the simplest and the most accurate way to analyse the
-effectivness of the treatment. In this case, there is high probability
-that the treatment is effective.
+effectiveness of the treatment. In this case, there is high probability
+that the treatment is effective and relatively big.
 
 ## Simulation experiment
 
-Simulation experiment `binom_odds_comparison.R` runs 100 simulations with simulated data with varying oddsratio (0.1,...,1.0) and computes for each run the probability that oddsratio<1. The follwing figures show the variation in the results.
+Although we recommend showing the full posterior, the probability that oddsratio < 1 can be a useful summary. 
+Simulation experiment `binom_odds_comparison.R` runs 100 simulations with simulated data with varying oddsratio (0.1,...,1.0) and computes for each run the probability that oddsratio<1. The following figures show the variation in the results.
 
 Variation in probability that oddsratio<1 when true oddsratio is varied.
 ```{r}
@@ -105,11 +106,11 @@ With the often used log-score we get
 $$\mathrm{LOO} = \frac{1}{n} \sum_{i=1}^n \log {p(y_i|x_i,D_{-i},M_k)}$$.
 Cross-validation is useful in $M$-open case [@Vehtari+Ojanen:2012],
 when we don't trust any model to present the future data well (they
-might, but we just don't have enough confidenece to trust them to do
+might, but we just don't have enough confidence to trust them to do
 so).
 
-Next we demonstrate one of the weakneses of cross-validation (same
-holds for WAIC etc).
+Next we demonstrate one of the weaknesses of cross-validation (same
+holds for WAIC etc.).
 
 ## Analysis of the observed data
 
@@ -122,28 +123,28 @@ but in case of just two groups it is unlikely. Thus, in the following we
 switch a Bernoulli model with each individual as it's own observation.
 
 ```{r, warning=FALSE, error=FALSE}
-d_bin2 <- data.frame(N = 674+680, y = c(rep(1,39), rep(0,674-39), rep(1,22), rep(0,680-22)), grp2 = c(rep(0, 674), rep(1, 680)))
-fit_bin2 <- stan_glm(y ~ grp2, family = binomial(), data = d_bin2, seed=180202538, refresh=0)
+d_bin2b <- data.frame(y = c(rep(1,39), rep(0,674-39), rep(1,22), rep(0,680-22)), grp2 = c(rep(0, 674), rep(1, 680)))
+fit_bin2b <- stan_glm(y ~ grp2, family = binomial(), data = d_bin2b, seed=180202538, refresh=0)
 ```
 
 We fit also a "null" model which doesn't use the group variable and thus has common parameter for both groups.'
 ```{r, warning=FALSE, error=FALSE}
-fit_bin2null <- stan_glm(y ~ 1, family = binomial(), data = d_bin2, seed=180202538, refresh=0)
+fit_bin2bnull <- stan_glm(y ~ 1, family = binomial(), data = d_bin2b, seed=180202538, refresh=0)
 ```
 
 We can then use cross-validation to compare whether adding the
 treatment variable improves predictive performance. We use fast Pareto smoothed importance sampling leave-one-out cross-validation [PSIS-LOO; @Vehtari+etal:PSIS-LOO:2017].
 ```{r}
-(loo_bin2 <- loo(fit_bin2))
-(loo_bin2null <- loo(fit_bin2null))
+(loo_bin2 <- loo(fit_bin2b))
+(loo_bin2null <- loo(fit_bin2bnull))
 ```
 All Pareto $k<0.5$ and we can trust PSIS-LOO result [@Vehtari+etal:PSIS-LOO:2017; @Vehtari+etal:PSIS:2017].
 
 Let's make pairwise comparison.
 ```{r}
-compare(loo_bin2null, loo_bin2)
+loo_compare(loo_bin2null, loo_bin2)
 ```
-elpd_diff is small compared to se, and thus cross-validation is uncertain whether would be significant improvement in predictive performance! To put this in persepective, we have $N_1=674$ and $N_2=680$, and 5.8% and 3.2% deaths, and this is now too weak information for cross-validation.
+elpd_diff is small compared to se, and thus cross-validation is uncertain whether estimating the treatment effect improves the predictive performance. To put this in perspective, we have $N_1=674$ and $N_2=680$, and 5.8% and 3.2% deaths, and this is now too weak information for cross-validation.
 
 ## Simulation experiment
 
@@ -156,7 +157,7 @@ ggplot(looprobs_densities, aes(x = values, y = ind, height = scaled)) +
 ```
 
 We see that using the posterior distribution from the model is more
-sensitive to detect the effect, but cross-validation will detect it
+efficient to detect the effect, but cross-validation will detect it
 eventually too. The difference here comes that cross-validation
 doesn't trust the model, compares the model predictions to the "future
 data" using very weak assumption about the future. The weak assumption
@@ -167,7 +168,7 @@ in another notebook.
 
 We can also do predictive performance estimates using stronger assumption about the future. A reference predictive estimate with log-score can be computed as
 $$\mathrm{elpd}_{\mathrm{ref}}  = \int p(\tilde{y}|D,M_*) \log p(\tilde{y}|D,M_k) d\tilde{y}, $$
-where $M_*$ is a reference model we trust. Using a reference model to assess the other models coreesponds to $M$-completed case [@Vehtari+Ojanen:2012], where the true model is replaced with a model we trust to be close enough to the true model.
+where $M_*$ is a reference model we trust. Using a reference model to assess the other models corresponds to $M$-completed case [@Vehtari+Ojanen:2012], where the true model is replaced with a model we trust to be close enough to the true model.
 
 ## Simulation experiment
 
@@ -179,7 +180,40 @@ ggplot(refprobs_densities, aes(x = values, y = ind, height = scaled)) +
 
 We can see better accuracy than for cross-validation. The similar improvement in the model selection performance is observed in projection predictive variable selection [@Piironen+Vehtari:2017a; @Piironen+etal:projpred:2018] implemented in [`projpred` package](https://cran.r-project.org/package=projpred).
 
+# Marginal likelihood
+
+As comparison we include marginal likelihood based approach to compute the posterior probabilities for the null model (treatment effect is zero) and the model with unknown treatment effect. As the data and models are very simple, we may assume $M$-closed case. Marginal likelihoods and relative posterior probabilities can be sensitive to selected prior on the more complex model. Here we simply use the same prior as for the above examples. Marginal likelihoods are computed using the default bridge sampling approach implemented in `bridge_sampling` package.
+
+## Analysis of the observed data
+
+```{r}
+# rerun models with diagnostic file required by bridge_sampler
+fit_bin2 <- stan_glm(y/N ~ grp2, family = binomial(), data = d_bin2,
+                     weights = N, refresh=0,
+                     diagnostic_file = file.path(tempdir(), "df.csv"))
+(ml_bin2 <- bridge_sampler(fit_bin2, silent=TRUE))
+fit_bin2null <- stan_glm(y/N ~ 1, family = binomial(), data = d_bin2,
+                     weights = N, refresh=0,
+                     diagnostic_file = file.path(tempdir(), "df.csv"))
+(ml_bin2null <- bridge_sampler(fit_bin2null, silent=TRUE))
+print(post_prob(ml_bin2, ml_bin2null), digits=2)
+```
+
+Posterior probability computed from the marginal likelihoods is indecisive.
+
+## Simulation experiment
+
+We repeat the simulation with marginal likelihood approach.
+```{r}
+ggplot(bfprobs_densities, aes(x = values, y = ind, height = scaled)) + 
+  geom_density_ridges(stat = "identity", scale=0.6)
+```
+
+We can see that marginal likelihood based approach favors more strongly null model for smaller treatment effects, requires a bigger effect than the other approaches to not favor the null model, but given big enough effect is more decisive on non-null model than cross-validation.
+
+  
 <br />
+
 
 # References {.unnumbered}
 
@@ -187,8 +221,8 @@ We can see better accuracy than for cross-validation. The similar improvement in
 
 # Licenses {.unnumbered}
 
-* Code &copy; 2018, Aki Vehtari, licensed under BSD-3.
-* Text &copy; 2018, Aki Vehtari, licensed under CC-BY-NC 4.0.
+* Code &copy; 2018-2019, Aki Vehtari, licensed under BSD-3.
+* Text &copy; 2018-2019, Aki Vehtari, licensed under CC-BY-NC 4.0.
 * Part of the code copied from [rstanarm_demo.Rmd](https://github.com/avehtari/BDA_R_demos/blob/master/demos_rstan/rstanarm_demo.Rmd) written by Aki Vehtari and Markus Paasiniemi
 
 # Original Computing Environment {.unnumbered}
