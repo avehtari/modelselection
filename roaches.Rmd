@@ -23,13 +23,12 @@ knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, co
 **Load packages**
 ```{r}
 library(rstanarm)
+library(brms)
 options(mc.cores = parallel::detectCores())
 library(loo)
-library(shinystan)
 library(ggplot2)
 library(bayesplot)
 theme_set(bayesplot::theme_default(base_family = "sans"))
-library(ggplot2)
 ```
 
 # Introduction
@@ -51,13 +50,13 @@ In addition to an intercept, the regression predictors for the model are the pre
 Load data
 ```{r}
 data(roaches)
-# Rescale
-roaches$roach1 <- roaches$roach1 / 100
+# Roach1 is very skewed and we take a square root
+roaches$sqrt_roach1 <- sqrt(roaches$roach1)
 ```
 
 Fit with stan_glm
 ```{r, results='hide'}
-stan_glmp <- stan_glm(y ~ roach1 + treatment + senior, offset = log(exposure2),
+stan_glmp <- stan_glm(y ~ sqrt_roach1 + treatment + senior, offset = log(exposure2),
                       data = roaches, family = poisson, 
                       prior = normal(0,2.5), prior_intercept = normal(0,5),
                       chains = 4, cores = 1, seed = 170400963, refresh=0)
@@ -67,7 +66,7 @@ stan_glmp <- stan_glm(y ~ roach1 + treatment + senior, offset = log(exposure2),
 
 Plot posterior
 ```{r}
-mcmc_areas(as.matrix(stan_glmp),prob_outer = .9999)
+mcmc_areas(as.matrix(stan_glmp), prob_outer = .999)
 ```
 
 We have all marginals significantly away from zero.
@@ -78,6 +77,7 @@ We can use Pareto-smoothed importance sampling leave-one-out cross-validation as
 ```{r}
 (loop <- loo(stan_glmp))
 ```
+
 We got serious warnings, let's plot Pareto $k$ values.
 ```{r}
 plot(loop)
@@ -91,17 +91,17 @@ Before looking in more detail where the problem is or fixing it, let's check wha
 We form 3 models by dropping each of the covariates out.
 ```{r, results='hide'}
 stan_glmm1p <- update(stan_glmp, formula = y ~ treatment + senior)
-stan_glmm2p <- update(stan_glmp, formula = y ~ roach1 + senior)
-stan_glmm3p <- update(stan_glmp, formula = y ~ roach1 + treatment)
+stan_glmm2p <- update(stan_glmp, formula = y ~ sqrt_roach1 + senior)
+stan_glmm3p <- update(stan_glmp, formula = y ~ sqrt_roach1 + treatment)
 ```
 
-Although Pareto $k$ values were very large we can make a quick test with PSIS-LOO (if the comparison would say there is difference, then PSIS-LOO couldn't be trusted and PSIS-LOO+ or k-fold-CV woul be needed [see more in @Vehtari+etal:PSIS-LOO:2017]).
+Although Pareto $k$ values were very large we can make a quick test with PSIS-LOO (if the comparison would say there is difference, then PSIS-LOO couldn't be trusted and PSIS-LOO+ or k-fold-CV would be needed [see more in @Vehtari+etal:PSIS-LOO:2017]).
 ```{r}
 loo_compare(loo(stan_glmm1p), loop)
 loo_compare(loo(stan_glmm2p), loop)
 loo_compare(loo(stan_glmm3p), loop)
 ```
-Based on this the roaches covariate would be relevant, but although dropping treatment or senior covariate will make a large chnage to elpd, the uncertainty is also large and cross-validation states that these covariates are not necessarily relevant! The posterior marginals are conditional on the model, but cross-validation is more cautios by not using any model for the future data distribution.
+Based on this the roaches covariate would be relevant, but although dropping treatment or senior covariate will make a large change to elpd, the uncertainty is also large and cross-validation states that these covariates are not necessarily relevant! The posterior marginals are conditional on the model, but cross-validation is more cautious by not using any model for the future data distribution.
 
 ## Posterior predictive checking
 
@@ -122,15 +122,15 @@ stan_glmnb <- update(stan_glmp, family = neg_binomial_2)
 
 Plot posterior
 ```{r}
-mcmc_areas(as.matrix(stan_glmnb), prob_outer = .9999,
-    pars = c("(Intercept)","roach1","treatment","senior"))
+mcmc_areas(as.matrix(stan_glmnb), prob_outer = .999,
+    pars = c("(Intercept)","sqrt_roach1","treatment","senior"))
 ```
 
 Treatment effect is much closer to zero, and senior effect has lot of probability mass on both sides of 0. So it matters, which model we use.
 
 We discuss posterior dependencies in more detail in `collinear` notebook, but for reference we plot also here paired marginals.
 ```{r}
-mcmc_pairs(as.matrix(stan_glmnb),pars = c("(Intercept)","roach1","treatment","senior"))
+mcmc_pairs(as.matrix(stan_glmnb),pars = c("(Intercept)","sqrt_roach1","treatment","senior"))
 ```
 
 There are some posterior correlations, but not something which would change our conclusions.
@@ -148,9 +148,9 @@ loo_compare(loop, loonb)
 ```
 Negative-Binomial model is clearly better than Poisson.
 
-As Poisson is a special case of negative-Binomial, we could have also seen that Poisson is likely by lookig at the posterior of the over-dispersion parameter (which gets very small values).
+As Poisson is a special case of negative-Binomial, we could have also seen that Poisson is likely by looking at the posterior of the over-dispersion parameter (which gets very small values).
 ```{r}
-mcmc_areas(as.matrix(stan_glmnb), prob_outer = .9999,
+mcmc_areas(as.matrix(stan_glmnb), prob_outer = .999,
     pars = c("reciprocal_dispersion"))
 ```
 
@@ -172,14 +172,175 @@ stan_glmm3nb <- update(stan_glmm3p, family = neg_binomial_2)
 ```
 
 ```{r}
-loo_compare(loo(stan_glmm1nb),loonb)
-loo_compare(loo(stan_glmm2nb),loonb)
-loo_compare(loo(stan_glmm3nb),loonb)
+loo_compare(loo(stan_glmm1nb), loonb)
+loo_compare(loo(stan_glmm2nb), loonb)
+loo_compare(loo(stan_glmm3nb), loonb)
 ```
-Roaches1 has clear effect. Treatment effect was visible in posterior, but as discussed in betablockers demo, cross-validation is not good for detecting weak effects. Based on cross-validation senior effect is also not relevant.
+Roaches1 has clear effect. Treatment effect is visible in marginal posterior, but as discussed in `betablockers` demo, cross-validation is not good for detecting weak effects. Based on cross-validation senior effect is also not relevant.
 
 Conclusion from the analysis would be then that, treatment is likely to help, but it's difficult to predict the number of roaches given treatment or not.
 
+# Poisson model with "random effects"
+
+Sometimes overdispersion is modelled by adding "random effects" for each individual. The following example illustrates computational problems in this approach.
+
+```{r}
+roaches$id <- 1:dim(roaches)[1]
+```
+
+Fit with stan_glm
+```{r, results='hide'}
+stan_glmpr <- stan_glmer(y ~ sqrt_roach1 + treatment + senior + (1 | id), 
+                         offset = log(exposure2),
+                         data = roaches, family = poisson, 
+                         prior = normal(0,2.5), prior_intercept = normal(0,5),
+                         chains = 4, cores = 4, iter = 4000, 
+                         seed = 170400963, refresh=0)
+```
+
+## Analyse posterior
+
+Plot posterior
+```{r}
+mcmc_areas(as.matrix(stan_glmpr), prob_outer = .999,
+    pars = c("(Intercept)","sqrt_roach1","treatment","senior"))
+```
+
+The marginals are similiar as with negative-binomial model except the
+marginal for senior effect is clearly away from zero.
+
+## Cross-validation checking
+
+Let's check PSIS-LOO.
+```{r}
+(loopr <- loo(stan_glmpr))
+```
+We got serious warnings, which in this case is due to having a "random effect" parameter for each observations. Removing one observation changes the posterior for that random effect so much that importance sampling fails (even with Pareto smoothing). Not that WAIC would fail due to the same reason.
+
+We can also plot Pareto $k$ values.
+```{r}
+plot(loopr)
+```
+We have a very large number of high $k$ values which indicates very flexible model.
+
+While importance sampling in PSIS-LOO can fail for "random effect"
+model, we can use $K$-fold-CV instead to re-fit the model 10 times,
+each time leaving out 10% of the observations. This shows that
+cross-validation itself is not infeasible for "random effect" models.
+```{r}
+(kcvpr <- kfold(stan_glmpr, K=10))
+```
+
+loo package allows comparing PSIS-LOO and $K$-fold-CV results
+```
+loo_compare(loonb, kcvpr)
+```
+
+There is not much difference, and this difference could also be
+explained by $K$-fold-CV using only 90% of observations for the
+posteriors, while PSIS-LOO is using 99.6% of observations for the
+posteriors. We can check this by running $K$-fold-CV also for negative-binomial model.
+```{r}
+(kcvnb <- kfold(stan_glmnb, K=10))
+loo_compare(kcvnb, kcvpr)
+```
+
+When both models are assessed using $K$-fold-CV, the difference in predictive performance is very small. The models can still have different predictive distributions.
+
+## Posterior predictive checking
+
+We do posterior predictive checking also for Poisson with "random effects" model.
+```{r}
+(prop_zero_test3 <- pp_check(stan_glmpr, plotfun = "stat", stat = "prop_zero"))
+```
+
+The proportion of zeros in posterior predictive simulations from
+Poisson with "random effects" model is different (less variation) than
+from negative-binomial model. The models are similar in that way that
+are modeling over-dispersion, but the model for the over-dispersion is
+different.
+
+# Zero-inflated negative-binomial model
+
+As the proportion of zeros is quite high in the data, it is worthwile to test also a zero-inflated negative-binomial model, which is a mixture of two models
+ - logistic regression to model the proportion of extra zero counts
+ - negative-binomial model
+
+We switch to brms as rstanarm doesn't support zero-inflated
+negative-binomial model
+
+```{r results='hide'}
+brm_glmznb <- brm(bf(y ~ sqrt_roach1 + treatment + senior + offset(log(exposure2)),
+                  zi ~ sqrt_roach1 + treatment + senior + offset(log(exposure2))),
+                  family=zero_inflated_negbinomial(), data=roaches,
+                  prior=set_prior("normal(0,1)"), seed=170400963, refresh=500)
+```
+
+```{r}
+looznb <- loo(brm_glmznb)
+loo_compare(loonb, looznb)
+```
+
+Based on loo, zero-inflated negative-binomial is clearly better.
+
+Posterior predictive checking provides further evidence that
+zero-inflated negative-binomial is better.
+
+```{r }
+yrepnzb <- posterior_predict(brm_glmznb)
+(prop_zero_test4 <- ppc_stat(y=roaches$y, yrepnzb, stat=function(y) mean(y==0)))
+```
+
+Proportion of zeros is similar, but has more variation compared to negative-binomial model. Howvere there is much bigger difference in max count test statistic. We first check the max count PPC for negative-binomial model.
+```{r }
+(max_test_nb <- pp_check(stan_glmnb, plotfun = "stat", stat = "max"))
+```
+
+which shows that negative-binomial model is predicting often 10-100 larger roach counts than in the data (40,000 roaches in obe trap is a lot).
+
+The max count PPC for zero-inflated negative-binomial model
+```{r }
+(max_test_znb <- ppc_stat(y=roaches$y, yrepnzb, stat="max"))
+```
+
+is much better, although still the max counts can be 10 times bigger
+than the max count in the data. 
+
+## Analyse posterior
+
+Plot posterior
+```{r}
+mcmc_areas(as.matrix(brm_glmznb)[,1:8], prob_outer = .999)
+```
+
+The marginals for negative-binomial part are similar to marginals in the plain negative-binomial model. The marginal effects for the logistic part have opposite sign as the logistic part is modelling the extra zeros. 
+
+## Cross-validation checking
+
+## Predictive relevance of covariates
+
+Let's finally check cross-validation model comparison to see whether improved model has effect on the predictive performance comparison.
+```{r, results='hide'}
+brm_glmm1znb <- brm(bf(y ~ treatment + senior + offset(log(exposure2)),
+                  zi ~ treatment + senior + offset(log(exposure2))),
+                  family=zero_inflated_negbinomial(), data=roaches,
+                  prior=set_prior("normal(0,1)"), seed=170400963, refresh=500)
+brm_glmm2znb <- brm(bf(y ~ sqrt_roach1 + senior + offset(log(exposure2)),
+                  zi ~ sqrt_roach1 + senior + offset(log(exposure2))),
+                  family=zero_inflated_negbinomial(), data=roaches,
+                  prior=set_prior("normal(0,1)"), seed=170400963, refresh=500)
+brm_glmm3znb <- brm(bf(y ~ sqrt_roach1 + treatment + offset(log(exposure2)),
+                  zi ~ sqrt_roach1 + treatment + offset(log(exposure2))),
+                  family=zero_inflated_negbinomial(), data=roaches,
+                  prior=set_prior("normal(0,1)"), seed=170400963, refresh=500)
+```
+
+```{r}
+loo_compare(loo(brm_glmm1znb),looznb)
+loo_compare(loo(brm_glmm2znb),looznb)
+loo_compare(loo(brm_glmm3znb),looznb)
+```
+Roaches1 has clear effect. Treatment effect is visible in marginal posterior, but as discussed in `betablockers` demo, cross-validation is not that good for detecting weak effects. 
 
 <br />
 
