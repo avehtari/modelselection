@@ -206,7 +206,7 @@ mcmc_areas(as.matrix(stan_glmpr), prob_outer = .999,
     pars = c("(Intercept)","sqrt_roach1","treatment","senior"))
 ```
 
-The marginals are similiar as with negative-binomial model except the
+The marginals are similar as with negative-binomial model except the
 marginal for senior effect is clearly away from zero.
 
 ## Cross-validation checking
@@ -215,7 +215,7 @@ Let's check PSIS-LOO.
 ```{r}
 (loopr <- loo(stan_glmpr))
 ```
-We got serious warnings, which in this case is due to having a "random effect" parameter for each observations. Removing one observation changes the posterior for that random effect so much that importance sampling fails (even with Pareto smoothing). Not that WAIC would fail due to the same reason.
+We got serious warnings, which in this case is due to having a "random effect" parameter for each observations. Removing one observation changes the posterior for that random effect so much that importance sampling fails (even with Pareto smoothing). Note that WAIC would fail due to the same reason.
 
 We can also plot Pareto $k$ values.
 ```{r}
@@ -272,7 +272,7 @@ different.
 
 # Zero-inflated negative-binomial model
 
-As the proportion of zeros is quite high in the data, it is worthwile to test also a zero-inflated negative-binomial model, which is a mixture of two models
+As the proportion of zeros is quite high in the data, it is worthwhile to test also a zero-inflated negative-binomial model, which is a mixture of two models
  - logistic regression to model the proportion of extra zero counts
  - negative-binomial model
 
@@ -301,12 +301,12 @@ yrepnzb <- posterior_predict(brm_glmznb)
 (prop_zero_test4 <- ppc_stat(y=roaches$y, yrepnzb, stat=function(y) mean(y==0)))
 ```
 
-Proportion of zeros is similar, but has more variation compared to negative-binomial model. Howvere there is much bigger difference in max count test statistic. We first check the max count PPC for negative-binomial model.
+Proportion of zeros is similar, but has more variation compared to negative-binomial model. However there is much bigger difference in max count test statistic. We first check the max count PPC for negative-binomial model.
 ```{r }
 (max_test_nb <- pp_check(stan_glmnb, plotfun = "stat", stat = "max"))
 ```
 
-which shows that negative-binomial model is predicting often 10-100 larger roach counts than in the data (40,000 roaches in obe trap is a lot).
+which shows that negative-binomial model is predicting often 10-100 larger roach counts than in the data (40,000 roaches in one trap is a lot).
 
 The max count PPC for zero-inflated negative-binomial model
 ```{r }
@@ -360,8 +360,8 @@ Roaches1 has clear effect. Treatment effect is visible in marginal posterior, bu
 
 # Licenses {.unnumbered}
 
-* Code &copy; 2017-2018, Aki Vehtari, licensed under BSD-3.
-* Text &copy; 2017-2018, Aki Vehtari, licensed under CC-BY-NC 4.0.
+* Code &copy; 2017-2019, Aki Vehtari, licensed under BSD-3.
+* Text &copy; 2017-2019, Aki Vehtari, licensed under CC-BY-NC 4.0.
 * Parts of text and code &copy; 2017, Jonah Gabry and Ben Goodrich from [rstanarm vignette for count data](https://cran.r-project.org/web/packages/rstanarm/vignettes/count.html), licensed under GPL 3>
 
 # Original Computing Environment {.unnumbered}
