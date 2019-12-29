@@ -247,6 +247,16 @@ loo_compare(kcvnb, kcvpr)
 
 When both models are assessed using $K$-fold-CV, the difference in predictive performance is very small. The models can still have different predictive distributions.
 
+Now that we've seen that based on robust $K$-fold-CV there is not much difference between negative-binomial and random-effect-Poisson models, we can also check how bad the comparison would have been with PSIS-LOO.
+```{r}
+loo_compare(loonb, loopr)
+```
+
+If we would have ignored Pareto-$k$ warnings, we would have mistakenly assumed that random effect model is much better. Note that WAIC is (as usual) even worse  
+```{r}
+loo_compare(waic(stan_glmnb), waic(stan_glmpr))
+```
+
 ## Posterior predictive checking
 
 We do posterior predictive checking also for Poisson with "random effects" model.
