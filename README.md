@@ -4,6 +4,8 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 
 ### Talks
 
+* Use of reference models in variable selection at [Laplace's demon seminar series](https://ailab.criteo.com/laplaces-demon-bayesian-machine-learning-at-scale/)
+  - [Video](https://www.youtube.com/watch?v=N0ce8J8slFY)
 * Model assessment, comparison and selection at Master class in Bayesian statistics, CIRM, Marseille
   - [Slides](slides_model_assesment_selection.pdf)
   - [Video](https://library.cirm-math.fr/Record.htm?idlist=157&record=19285597124910037799)
@@ -58,16 +60,24 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 
 ### References
 
+* Afrabandpey, H., Peltola, T., Piironen, J., Vehtari, A., and Kaski, S. (2019). Making Bayesian predictive models interpretable: A decision theoretic approach. [arXiv preprint arXiv:1910.09358](https://arxiv.org/abs/1910.09358)
 * Bürkner, P.-C., Gabry, J., Vehtari, A. (2018). Leave-one-out
   cross-validation for non-factorizable normal
   models. [arXiv:1810.10559](https://arxiv.org/abs/arXiv:1810.10559)
+* Bürkner, P.-C., Gabry, J., Vehtari, A. (2020). Approximate leave-future-out
+  cross-validation for time series models. Journal of Statistical Computation and Simulation, doi:10.1080/00949655.2020.1783262. [Online](https://doi.org/10.1080/00949655.2020.1783262). [Preprint arXiv:1902.06281](https://arxiv.org/abs/1902.06281)
 * Gelman, A., Hwang, J., and Vehtari, A. (2014). Understanding
   predictive information criteria for Bayesian models. Statistics and
   Computing, 24(6):997–1016.
   [Preprint](http://www.stat.columbia.edu/~gelman/research/published/waic_understand3.pdf)
-* Piironen, J., Paasiniemi, M., and Vehtari, A. (2018). Projective
-  Inference in High-dimensional Problems: Prediction and Feature
-  Selection. [arXiv:1810.02406](https://arxiv.org/abs/arXiv:1810.02406)
+* Gelman, A., Goodrich, B., Gabry, J., and Vehtari, A. (2018). R-squared for Bayesian regression models. The American Statistician, doi:10.1080/00031305.2018.1549100. [Online](https://doi.org/10.1080/00031305.2018.1549100).
+* Magnusson, M., Andersen, M.R., Jonasson, J., Vehtari, A. (2019). Bayesian leave-one-out
+  cross-validation for large data. Thirty-sixth International Conference on Machine Learning,
+  PMLR 97:4244--4253. [Online](http://proceedings.mlr.press/v97/magnusson19a.html).
+* * Magnusson, M., Andersen, M.R., Jonasson, J., Vehtari, A. (2020). Leave-one-out cross-validation for Bayesian model comparison in large data. Proceedings of the 23rd International Conference on Artificial Intelligence and Statistics (AISTATS), PMLR 108:341-351. [Online](http://proceedings.mlr.press/v108/magnusson20a.html). [preprint arXiv:2001.00980](https://arxiv.org/abs/2001.00980).
+* Paananen, T., Piironen, J., Bürkner, P.-C., and Vehtari, A. (2020). Implicitly adaptive importance sampling.
+  [arXiv:1906.08850](https://arxiv.org/abs/1906.08850)
+* Pavone, F., Piironen, J., Bürkner, P.-C., and Vehtari, A- (2020). Using reference models in variable selection. [arXiv preprint arXiv:2004.13118](https://arxiv.org/abs/2004.13118)
 * Piironen, J. and Vehtari, A. (2016), Comparison of Bayesian
   predictive methods for model selection, Statistics and Computing
   27(3), 711–735. [Online](https://doi.org/10.1007/s11222-016-9649-y)
@@ -85,11 +95,14 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
   Artificial Intelligence and Statistics, accepted for
   publication.
   [arXiv preprint arXiv:1710.06229](https://arxiv.org/abs/1710.06229)
+* Piironen, J., Paasiniemi, M., and Vehtari, A. (2020). Projective
+  Inference in High-dimensional Problems: Prediction and Feature
+  Selection. Electronic Journal of Statistics, 14(1):2155-2197. [Online](https://doi.org/10.1214/20-EJS1711). [Preprint arXiv:1810.02406](https://arxiv.org/abs/arXiv:1810.02406)
 * Vehtari, A., Gelman, A., Gabry, J. (2017). Practical Bayesian model
   evaluation using leave-one-out cross-validation and WAIC. Statistics
   and Computing.  27(5):1413–1432. [arXiv
   preprint](http://arxiv.org/abs/1507.04544).
-* Vehtari, A., Gelman, A., Gabry, J. (2017). Pareto smoothed
+* Vehtari, A., Simpson, D., Gelman, A., Yao, Y., and Gabry, J. (2019). Pareto smoothed
   importance sampling. [arXiv
   preprint](http://arxiv.org/abs/1507.02646).
 * Vehtari, A., Mononen, T., Tolvanen, V., and Winther, O. (2016).
