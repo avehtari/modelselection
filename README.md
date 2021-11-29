@@ -60,24 +60,48 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 
 ### References
 
-* Afrabandpey, H., Peltola, T., Piironen, J., Vehtari, A., and Kaski, S. (2019). Making Bayesian predictive models interpretable: A decision theoretic approach. [arXiv preprint arXiv:1910.09358](https://arxiv.org/abs/1910.09358)
-* Bürkner, P.-C., Gabry, J., Vehtari, A. (2018). Leave-one-out
-  cross-validation for non-factorizable normal
-  models. [arXiv:1810.10559](https://arxiv.org/abs/arXiv:1810.10559)
-* Bürkner, P.-C., Gabry, J., Vehtari, A. (2020). Approximate leave-future-out
-  cross-validation for time series models. Journal of Statistical Computation and Simulation, doi:10.1080/00949655.2020.1783262. [Online](https://doi.org/10.1080/00949655.2020.1783262). [Preprint arXiv:1902.06281](https://arxiv.org/abs/1902.06281)
+* Afrabandpey, H., Peltola, T., Piironen, J., Vehtari, A., and Kaski, S. (2020). Making Bayesian predictive models interpretable: A decision theoretic approach. *Machine Learning*, 109:1855--1876. [Online](https://doi.org/10.1007/s10994-020-05901-8). [arXiv preprint arXiv:1910.09358](https://arxiv.org/abs/1910.09358)
+* Paul-Christian Bürkner, Jonah Gabry, and Aki Vehtari
+   (2020). Efficient leave-one-out cross-validation for Bayesian
+   non-factorized normal and Student-$t$ models. *Computational Statistics*,
+   [doi\:10.1007/s00180-020-01045-4](https://doi.org/10.1007/s00180-020-01045-4).
+   [arXiv preprint arXiv:1810.10559](https://arxiv.org/abs/1810.10559).
+   [Code](https://mc-stan.org/loo/articles/loo2-non-factorizable.html).
+* Paul-Christian Bürkner, Jonah Gabry, and Aki Vehtari
+   (2020). Approximate leave-future-out cross-validation for time
+   series models. *Journal of Statistical Computation and
+   Simulation*, 90(14):2499-2523. [Online](https://doi.org/10.1080/00949655.2020.1783262). [arXiv preprint arXiv:1902.06281](https://arxiv.org/abs/1902.06281). [Code](https://mc-stan.org/loo/articles/loo2-lfo.htmll).
+* Alejandro Catalina, Paul Bürkner, and Aki Vehtari (2021).
+   Latent space projection predictive inference. 
+   [arXiv preprint arXiv:2109.04702](https://arxiv.org/abs/2109.04702).
+* Alejandro Catalina, Paul-Christian Bürkner, and Aki Vehtari
+   (2020). Projection predictive inference for generalized linear and
+   additive multilevel models. [arXiv preprint
+   arXiv:2010.06994](https://arxiv.org/abs/2010.06994).
 * Gelman, A., Hwang, J., and Vehtari, A. (2014). Understanding
   predictive information criteria for Bayesian models. Statistics and
   Computing, 24(6):997–1016.
   [Preprint](http://www.stat.columbia.edu/~gelman/research/published/waic_understand3.pdf)
-* Gelman, A., Goodrich, B., Gabry, J., and Vehtari, A. (2018). R-squared for Bayesian regression models. The American Statistician, doi:10.1080/00031305.2018.1549100. [Online](https://doi.org/10.1080/00031305.2018.1549100).
+* Andrew Gelman, Ben Goodrich, Jonah Gabry, and Aki Vehtari
+   (2019). R-squared for Bayesian regression models. *The
+   American Statistician*,
+   73(3):307-309. [Online](https://doi.org/10.1080/00031305.2018.1549100).
+   [Preprint](https://www.stat.columbia.edu/~gelman/research/unpublished/bayes_R2_v3.pdf).
+   [Code](https://avehtari.github.io/bayes_R2/bayes_R2.html).
 * Magnusson, M., Andersen, M.R., Jonasson, J., Vehtari, A. (2019). Bayesian leave-one-out
   cross-validation for large data. Thirty-sixth International Conference on Machine Learning,
   PMLR 97:4244--4253. [Online](http://proceedings.mlr.press/v97/magnusson19a.html).
-* * Magnusson, M., Andersen, M.R., Jonasson, J., Vehtari, A. (2020). Leave-one-out cross-validation for Bayesian model comparison in large data. Proceedings of the 23rd International Conference on Artificial Intelligence and Statistics (AISTATS), PMLR 108:341-351. [Online](http://proceedings.mlr.press/v108/magnusson20a.html). [preprint arXiv:2001.00980](https://arxiv.org/abs/2001.00980).
-* Paananen, T., Piironen, J., Bürkner, P.-C., and Vehtari, A. (2020). Implicitly adaptive importance sampling.
-  [arXiv:1906.08850](https://arxiv.org/abs/1906.08850)
-* Pavone, F., Piironen, J., Bürkner, P.-C., and Vehtari, A- (2020). Using reference models in variable selection. [arXiv preprint arXiv:2004.13118](https://arxiv.org/abs/2004.13118)
+* Magnusson, M., Andersen, M.R., Jonasson, J., Vehtari, A. (2020). Leave-one-out cross-validation for Bayesian model comparison in large data. Proceedings of the 23rd International Conference on Artificial Intelligence and Statistics (AISTATS), PMLR 108:341-351. [Online](http://proceedings.mlr.press/v108/magnusson20a.html). [preprint arXiv:2001.00980](https://arxiv.org/abs/2001.00980).
+* Oscar Oelrich, Shutong Ding, Måns Magnusson, Aki Vehtari, and
+   Mattias Villani (2020). When are Bayesian model probabilities
+   overconfident? [arXiv preprint
+   arXiv:2003.04026](https://arxiv.org/abs/2003.04026).
+* Topi Paananen, Juho Piironen, Paul-Christian Bürkner, and Aki
+   Vehtari (2021). Implicitly adaptive importance sampling.
+   *Statistics and Computing*, 31, 16.
+   [doi\:10.1007/s11222-020-09982-2](https://doi.org/10.1007/s11222-020-09982-2).
+   [arXiv preprint arXiv:1906.08850](https://arxiv.org/abs/1906.08850).
+* Pavone, F., Piironen, J., Bürkner, P.-C., and Vehtari, A. (2020). Using reference models in variable selection. [arXiv preprint arXiv:2004.13118](https://arxiv.org/abs/2004.13118)
 * Piironen, J. and Vehtari, A. (2016), Comparison of Bayesian
   predictive methods for model selection, Statistics and Computing
   27(3), 711–735. [Online](https://doi.org/10.1007/s11222-016-9649-y)
@@ -98,6 +122,15 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * Piironen, J., Paasiniemi, M., and Vehtari, A. (2020). Projective
   Inference in High-dimensional Problems: Prediction and Feature
   Selection. Electronic Journal of Statistics, 14(1):2155-2197. [Online](https://doi.org/10.1214/20-EJS1711). [Preprint arXiv:1810.02406](https://arxiv.org/abs/arXiv:1810.02406)
+* Tuomas Sivula, Måns Magnusson, and Aki Vehtari (2020). Unbiased
+   estimator for the variance of the leave-one-out cross-validation
+   estimator for a Bayesian normal model with fixed variance. [arXiv
+   preprint arXiv:2008.10859](https://arxiv.org/abs/2008.10859).
+* Tuomas Sivula, Måns Magnusson, and Aki Vehtari
+   (2020). Uncertainty in Bayesian leave-one-out cross-validation
+   based model comparison. [arXiv preprint
+   arXiv:2008.10296](https://arxiv.org/abs/2008.10296).<br>
+   [Video 30min](https://www.youtube.com/watch?v=vLx6lUlZ0fc).
 * Vehtari, A., Gelman, A., Gabry, J. (2017). Practical Bayesian model
   evaluation using leave-one-out cross-validation and WAIC. Statistics
   and Computing.  27(5):1413–1432. [arXiv
@@ -115,6 +148,11 @@ Example notebooks in R using [rstanarm](https://cran.r-project.org/package=rstan
 * Williams, D. R., Piironen, J., Vehtari, A., and Rast,
   P. (2018). Bayesian estimation of Gaussian graphical models with
   projection predictive selection. [arXiv:1801.05725](https://arxiv.org/abs/1801.05725)
+1. Yuling Yao, Gregor Pirš, Aki Vehtari, and Andrew Gelman (2021).
+   Bayesian hierarchical stacking: Some models are (somewhere)
+   useful. *Bayesian Analysis*,
+   [doi\:10.1214/21-BA1287](https://doi.org/10.1214/21-BA1287).
+   [arXiv preprint arXiv:2101.08954](https://arxiv.org/abs/2101.08954).
 * Yao, Y., Vehtari, A., Simpson, D., and Gelman, A. (2017). Using
   stacking to average Bayesian predictive distributions. In Bayesian
   Analysis, doi:10.1214/17-BA1091,
