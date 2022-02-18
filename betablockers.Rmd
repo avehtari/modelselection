@@ -1,6 +1,6 @@
 ---
-title: "Bayesian data analysis - beta blocker cross-validation demo"
-author: "Aki Vehtari"
+title: "Beta blocker cross-validation demo"
+author: "[Aki Vehtari](https://users.aalto.fi/~ave/)"
 date: "First version 2018-01-10. Last modified `r format(Sys.Date())`."
 output:
   html_document:
@@ -14,7 +14,7 @@ bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
 ---
 
-# Setup
+# Setup {.unnumbered}
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
@@ -33,10 +33,9 @@ library(bridgesampling)
 
 # Introduction
 
-This notebook demonstrates a simple model we trust, that is, we assume
-$M$-closed case [@Vehtari+Ojanen:2012]. In this case, cross-validation
-is not needed and we we can get better accuracy using the explicit
-model.
+This notebook demonstrates a simple model we trust (no model
+misspecification). In this case, cross-validation is not needed, and we
+we can get better accuracy using the explicit model.
 
 # Comparison of two groups with Binomial 
 

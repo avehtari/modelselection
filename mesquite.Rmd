@@ -1,6 +1,6 @@
 ---
 title: "Collinear demo with mesquite bushes"
-author: "Aki Vehtari"
+author: "[Aki Vehtari](https://users.aalto.fi/~ave/)"
 date: "First version 2018-01-16. Last modified `r format(Sys.Date())`."
 output:
   html_document:
@@ -53,7 +53,9 @@ in meters, measured along the longer axis of the bush
 # Data
 
 ```{r warning=FALSE,message=FALSE}
-dat<-read.table("mesquite.dat", header=TRUE)
+dat <- read.table("mesquite.dat", header=TRUE) %>% 
+  mutate_if(is.character, as.factor) %>%
+  mutate_if(is.factor, as.numeric)
 summary(dat)
 ```
 
@@ -159,31 +161,28 @@ We make the projective predictive variable selection using the previous full mod
 fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO', nloo = nrow(dat))
 ```
 
-```{r}
-fitg_cv$vind
-```
-
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('elpd', 'rmse'))
+plot(fitg_cv, stats = c('elpd', 'rmse'))
 ```
 
 And we get a loo-cv based recommendation for the model size to choose
 ```{r}
-(nv <- suggest_size(fitg_cv, alpha=0.1))
+(nsel <- suggest_size(fitg_cv, alpha=0.1))
+(vsel <- solution_terms(fitg_cv)[1:nsel])
 ```
-We see that `r nv` variables is enough to get the same predictive accuracy as with all 4 variables.
+We see that `r nsel` variables is enough to get the same predictive accuracy as with all 4 variables.
 
 Next we form the projected posterior for the chosen model.
 ```{r}
-projg <- project(fitg_cv, nv = nv, ns = 4000)
-round(colMeans(as.matrix(projg)),1)
-round(posterior_interval(as.matrix(projg)),1)
+projg <- project(fitg_cv, nv = nsel, ns = 4000)
+projdraws <- as.matrix(projg)
+round(colMeans(projdraws),1)
+round(posterior_interval(projdraws),1)
 ```
 
 ```{r}
-mcmc_areas(as.matrix(projg), 
-           pars = c('(Intercept)', names(fitg_cv$vind[1:nv])), prob_outer=0.99)
+mcmc_areas(projdraws, pars=c("Intercept",vsel), prob_outer=0.99)
 ```
 
 

@@ -1,15 +1,17 @@
 ---
 title: "Bayesian variable selection for candy ranking data"
-author: "Aki Vehtari"
+author: "[Aki Vehtari](https://users.aalto.fi/~ave/)"
 date: "First version 2018-02-27. Last modified `r format(Sys.Date())`."
 output:
   html_document:
+    self_contained: true
     fig_caption: yes
     toc: TRUE
     toc_depth: 2
     number_sections: TRUE
     toc_float:
       smooth_scroll: FALSE
+    code_download: true
 bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
 ---
@@ -38,11 +40,14 @@ This notebook was inspired by Joshua Loftus' two blog posts [Model selection bia
 
 In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] and projection predictive approach [@Piironen+etal:projpred:2018; @Piironen+Vehtari:2017a] which makes decision theoretically justified inference after model selection..
 
-## Data
+# Data
 
 We use candy rankings data from fivethirtyeight package. Dataset was originally used in [a fivethirtyeight story](http://fivethirtyeight.com/features/the-ultimate-halloween-candy-power-ranking/).
 ```{r}
-df <- candy_rankings %>% select(-competitorname)
+df <- candy_rankings %>%
+      select(-competitorname) %>%
+      mutate_if(is.logical, as.numeric)
+head(df)
 ```
 
 # Null data
@@ -51,14 +56,23 @@ We start first analysing a "null" data set, where winpercent has been replaced w
 ```{r}
 dfr <- df %>% select(-winpercent)
 n <- nrow(dfr)
+p <- ncol(dfr)
+prednames <- colnames(dfr)
 set.seed(SEED)
 ry = rnorm(n)
 dfr$ry <- ry
+(reg_formula <- formula(paste("ry ~", paste(prednames, collapse = " + "))))
 ```
 
 The `rstanarm` package provides `stan_glm` which accepts same arguments as `glm`, but makes full Bayesian inference using Stan ([mc-stan.org](https://mc-stan.org)). Doing variable selection we are anyway assuming that some of the variables are not relevant, and thus it is sensible to use priors which assume some of the covariate effects are close to zero. We use regularized horseshoe prior [@Piironen+Vehtari:RHS:2017] which has lot of prior mass near 0, but also thick tails allowing relevant effects to not shrunk. 
 ```{r}
-fitrhs <- stan_glm(ry ~ ., data = dfr, prior=hs(), seed=SEED, refresh=0)
+p0 <- 5 # prior guess for the number of relevant variables
+tau0 <- p0/(p-p0) * 1/sqrt(n)
+hs_prior <- hs(df=1, global_df=1, global_scale=tau0)
+t_prior <- student_t(df = 7, location = 0, scale = 2.5)
+fitrhs <- stan_glm(reg_formula, data = dfr,
+                 prior = hs_prior, prior_intercept = t_prior,
+		 seed=SEED, refresh=0)
 ```
 Let's look at the summary:
 ```{r}
@@ -67,7 +81,7 @@ summary(fitrhs)
 We didn't get divergences, Rhat's are less than 1.1 and n_eff's are useful (see, e.g., [RStan workflow](http://mc-stan.org/users/documentation/case-studies/rstan_workflow.html)).
 
 ```{r}
-mcmc_areas(as.matrix(fitrhs),prob_outer = .95)
+mcmc_areas(as.matrix(fitrhs), prob_outer = .95)
 ```
 
 All 95% posterior intervals are overlapping 0, regularized horseshoe prior makes the posteriors concentrate near 0, but there is some uncertainty.
@@ -87,7 +101,7 @@ Based on cross-validation covariates together do not contain any useful informat
 
 To illustrate the robustness of projpred, we make the projective predictive variable selection using the previous model for "null" data. A fast leave-one-out cross-validation approach [@Vehtari+etal:PSIS-LOO:2017] is used to choose the model size.
 ```{r, results='hide'}
-fitrhs_cv <- cv_varsel(fitrhs, method='forward', cv_method='LOO', n_loo=n)
+fitrhs_cv <- cv_varsel(fitrhs, method='forward', cv_method='loo', n_loo=n)
 ```
 
 ```{r}
@@ -96,7 +110,7 @@ fitrhs_cv$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitrhs_cv, stats = c('elpd', 'rmse'))
+plot(fitrhs_cv, stats = c('elpd', 'rmse'))
 ```
 
 We can see that the differences to the full model are very small.
@@ -120,7 +134,14 @@ This looks good as the true values for "null" data are intercept=0, sigma=1.
 Next we repeat the above analysis with original target variable winpercent.
 
 ```{r}
-fitrhs <- stan_glm(winpercent ~ ., data = df, prior=hs(), seed=SEED, refresh=0)
+reg_formula <- formula(paste("winpercent ~", paste(prednames, collapse = " + ")))
+p0 <- 5 # prior guess for the number of relevant variables
+tau0 <- p0/(p-p0) * 1/sqrt(n)
+hs_prior <- hs(df=1, global_df=1, global_scale=tau0)
+t_prior <- student_t(df = 7, location = 0, scale = 2.5)
+fitrhs <- stan_glm(reg_formula, data = df,
+                 prior = hs_prior, prior_intercept = t_prior,
+		 seed=SEED, refresh=0)
 ```
 Let's look at the summary:
 ```{r}
@@ -150,7 +171,7 @@ Based on cross-validation covariates together do contain useful information. If 
 
 We make the projective predictive variable selection using the previous model for "null" data. A fast leave-one-out cross-validation approach is used to choose the model size.
 ```{r, results='hide'}
-fitrhs_cv <- cv_varsel(fitrhs, method='forward', cv_method='LOO')
+fitrhs_cv <- cv_varsel(fitrhs, method='forward', cv_method='loo', n_loo=n)
 ```
 
 ```{r}
@@ -159,27 +180,29 @@ fitrhs_cv$vind
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitrhs_cv, stats = c('elpd', 'rmse'))
+plot(fitrhs_cv, stats = c('elpd', 'rmse'))
 ```
 
 Only one variable seems to be needed to get the same performance as the full model.
 
 And we get a LOO based recommendation for the model size to choose
 ```{r}
-(nv <- suggest_size(fitrhs_cv, alpha=0.1))
+(nsel <- suggest_size(fitrhs_cv, alpha=0.1))
+(vsel <- solution_terms(fitrhs_cv)[1:nsel])
 ```
 projpred recommends to use just one variable.
 
 Next we form the projected posterior for the chosen model.
 ```{r}
-projrhs <- project(fitrhs_cv, nv = nv, ns = 4000)
-round(colMeans(as.matrix(projrhs)),1)
-round(posterior_interval(as.matrix(projrhs)),1)
+projrhs <- project(fitrhs_cv, nv = nsel, ns = 4000)
+projdraws <- as.matrix(projrhs)
+colnames(projdraws) <- c("Intercept",vsel,"sigma")
+round(colMeans(projdraws),1)
+round(posterior_interval(projdraws),1)
 ```
 
 ```{r}
-mcmc_areas(as.matrix(projrhs), 
-           pars = c('(Intercept)', names(fitrhs_cv$vind[1])))
+mcmc_areas(projdraws)
 ```
 
 In our loo and projpred analysis, we find the `chocolateTRUE` to have predictive information. Other variables may have predictive power, too, but conditionally on `chocolateTRUE` other variables do not provide additional information.

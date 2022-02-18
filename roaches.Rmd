@@ -1,6 +1,6 @@
 ---
-title: "Bayesian data analysis - roaches cross-validation demo"
-author: "Aki Vehtari"
+title: "Roaches cross-validation demo"
+author: "[Aki Vehtari](https://users.aalto.fi/~ave/)"
 date: "First version 2017-01-10. Last modified `r format(Sys.Date())`."
 output:
   html_document:
@@ -232,7 +232,7 @@ cross-validation itself is not infeasible for "random effect" models.
 ```
 
 loo package allows comparing PSIS-LOO and $K$-fold-CV results
-```
+```{r}
 loo_compare(loonb, kcvpr)
 ```
 

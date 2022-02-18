@@ -1,6 +1,6 @@
 #' ---
 #' title: "Cross-validation for hierarchical models"
-#' author: "Aki Vehtari"
+#' author: "[Aki Vehtari](https://users.aalto.fi/~ave/)"
 #' date: "First version 2019-03-11. Last modified `r format(Sys.Date())`."
 #' output:
 #'   html_document:
@@ -22,8 +22,6 @@ knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, com
 savefigs <- FALSE
 
 #' **Load packages**
-library("rprojroot")
-root<-has_dirname("modelselection_tutorial")$make_fix_file()
 library("loo")
 library("rstanarm")
 options(mc.cores = parallel::detectCores())
@@ -40,7 +38,7 @@ theme_set(bayesplot::theme_default(base_family = "sans"))
 #' For time series specific cross-validation, see @Burkner+Gabry+Vehtari:LFO-CV:2019.
 #'
 
-#' # Data
+#' # Rats data
 #'
 #' Throughout, we will use a simple grouped data.  The example data is taken 
 #' from Section 6 of @Gelfand+etal:1990, and concerns 30 young rats whose
@@ -55,7 +53,7 @@ sourceToList = function(file){
   d
 }
 #
-rats = sourceToList(root("rats.data.R"))
+rats = sourceToList("rats.data.R")
 rats = with(rats, list(
   N = N,
   Npts = length(y),
@@ -128,6 +126,20 @@ loo_compare(loo_1, loo_2, loo_3)
 #' Model 3 is slightly better than model 2. Model 1 is clearly worst.
 #' Knowing all the other observations except one, it is beneficial to
 #' have individual intercept and slope terms.
+#'
+#' When we have more than two models, it can be easier to understand
+#' the uncertainties in the comparison by looking at the model averaging
+#' weights based on Bayesian stacking [@Yao+etal:2018] which optimizes
+#' the model weights so that the combined predictive distribution maximizes
+#' the estimate leave-one-out cross-validation performance.
+lpd_point <- cbind(loo_1$pointwise[,"elpd_loo"],
+                   loo_2$pointwise[,"elpd_loo"],
+                   loo_3$pointwise[,"elpd_loo"])
+stacking_weights(lpd_point)
+#' The simple linear model has weight 0, but the hierarchical slope model
+#' has weight 0.1, which means we can get better predictions averaging over
+#' model 2 and 3, instead of just using the model 3. If we were forced to
+#' choose just one model, model 3 is providing the best predictive accuracy.
 #' 
 
 #' # K-fold cross-validation
@@ -173,6 +185,15 @@ loo_compare(cv30r_1, cv30r_2, cv30r_3)
 #' less observations than in LOO.
 #' 
 
+#' Corresoponing model weights using Bayesian stacking method
+lpd_point <- cbind(cv30r_1$pointwise[,"elpd_kfold"],
+                   cv30r_2$pointwise[,"elpd_kfold"],
+                   cv30r_3$pointwise[,"elpd_kfold"])
+stacking_weights(lpd_point)
+#' The model weights are very close to ones with leave-one-out cross-validation,
+#' which is expected.
+#' 
+
 #' ## Stratified K-fold approximation of LOO
 #' 
 #' The random split might just by chance leave out more than one
@@ -212,6 +233,16 @@ loo_compare(cv30s_1, cv30s_2, cv30s_3)
 #' the stratified division balances the data division.
 #' 
 
+#' Corresoponing model weights using Bayesian stacking method
+lpd_point <- cbind(cv30s_1$pointwise[,"elpd_kfold"],
+                   cv30s_2$pointwise[,"elpd_kfold"],
+                   cv30s_3$pointwise[,"elpd_kfold"])
+stacking_weights(lpd_point)
+#' The model weights are very close to ones with leave-one-out cross-validation,
+#' which is expected.
+#' 
+
+
 #' ## Grouped K-fold for leave-one-group-out
 #' 
 #' K-fold cross-validation can also be used for leave-one-group-out
@@ -248,6 +279,7 @@ cv30g_1 <- rstanarm::kfold(fit_1, K=30, folds = cv30gfolds)
 cv30g_2 <- rstanarm::kfold(fit_2, K=30, folds = cv30gfolds)
 cv30g_3 <- rstanarm::kfold(fit_3, K=30, folds = cv30gfolds)
 
+
 #' Compare models
 loo_compare(cv10g_1, cv10g_2, cv10g_3)
 loo_compare(cv30g_1, cv30g_2, cv30g_3)
@@ -260,13 +292,24 @@ loo_compare(cv30g_1, cv30g_2, cv30g_3)
 #' small scale (`fit_2` and `fit_3`).
 #' 
 
+#' Corresoponing model weights using Bayesian stacking method
+lpd_point <- cbind(cv30g_1$pointwise[,"elpd_kfold"],
+                   cv30g_2$pointwise[,"elpd_kfold"],
+                   cv30g_3$pointwise[,"elpd_kfold"])
+stacking_weights(lpd_point)
+#' The model weights are now different than those obtained with LOO. The 
+#' elpd difference are small, but stacking weights show that if predict
+#' mostly with hierarchical intercept and slope model (`fit_3`), the other
+#' models are not able to add much.
+#' 
+
 #' In the above model, The SE of the elpd differences (`se_diff`) was computed 
 #' without taking into account the grouping structure. A more accurate 
 #' SE estimate could be obtained by firsting computing the group specific elpds:
 cvgfix <- function(cv, cvidx) {
     groupwise=numeric();
     K <- length(unique(cvidx))
-    for (i in 1:K) { groupwise[i]=sum(cv$pointwise[cvidx==i])}
+    for (i in 1:K) { groupwise[i]=sum(cv$pointwise[cvidx==i,"elpd_kfold"])}
     cv$pointwise <- cbind(elpd_kfolds=groupwise)
     cv$se_elpd_kfold <- sd(groupwise)*sqrt(K)
     cv$estimates[2] <- cv$se_elpd_kfold
@@ -287,6 +330,14 @@ loo_compare(cv30gg_1, cv30gg_2, cv30gg_3)
 #' The groupwise computation doesn't change the elpd differences, but changes
 #' the corresponding SE, which are now smaller. This implies a bit more accuracy 
 #' in the comparison, but the differences are still small.
+#' 
+
+#' Corresoponing model weights using Bayesian stacking method
+lpd_point <- cbind(cv30gg_1$pointwise[,"elpd_kfolds"],
+                   cv30gg_2$pointwise[,"elpd_kfolds"],
+                   cv30gg_3$pointwise[,"elpd_kfolds"])
+stacking_weights(lpd_point)
+#' The smaller SEs are reflected also in more certain model weights.
 #' 
 
 #' ## Grouped K-fold for prediction given initial weight
@@ -319,7 +370,7 @@ cv10x_3 <- rstanarm::kfold(fit_3, K=10, folds = cv10xfolds)
 cvxxfix <- function(cv, cvidx) {
     groupwise=numeric();
     K <- length(unique(cvidx))-1
-    for (i in 1:K) { groupwise[i]=sum(cv$pointwise[cvidx==i])}
+    for (i in 1:K) { groupwise[i]=sum(cv$pointwise[cvidx==i,"elpd_kfold"])}
     cv$pointwise <- cbind(elpd_kfolds=groupwise)
     cv$se_elpd_kfold <- sd(groupwise)*sqrt(K)
     cv$estimates[2] <- cv$se_elpd_kfold
@@ -336,6 +387,18 @@ loo_compare(cv10xx_1, cv10xx_2, cv10xx_3)
 #' Knowing the initial weight, we get quite similar predictive accuracy when
 #' using a common slope instead of varying slopes.
 #' 
+
+#' Corresoponing model weights using Bayesian stacking method
+lpd_point <- cbind(cv10xx_1$pointwise[,"elpd_kfolds"],
+                   cv10xx_2$pointwise[,"elpd_kfolds"],
+                   cv10xx_3$pointwise[,"elpd_kfolds"])
+stacking_weights(lpd_point)
+#' The model weights are more diffuse now. The stacking weights are not computed
+#' from the differences and SEs, but optimized to maximize the estimated predictive
+#' performance. The diffuse weights indicate that mixture prediction is better,
+#' which might indicate slight misspecification of the observation model.
+#' 
+
 
 #' # Alternative models for the prediction given initial weight
 #' 
@@ -379,12 +442,24 @@ loo_compare(cv10gg2_1, cv10gg2_2, cv10gg2_3)
 #' accuracy, but adding varying slopes does.
 #' 
 
+#' Corresoponing model weights using Bayesian stacking method
+lpd_point <- cbind(cv10gg2_1$pointwise[,"elpd_kfolds"],
+                   cv10gg2_2$pointwise[,"elpd_kfolds"],
+                   cv10gg2_3$pointwise[,"elpd_kfolds"])
+stacking_weights(lpd_point)
+#' The model with hierarchical intercept and slope (`fit2_3`) gets again
+#' the largest weight and it is likely that slopes are varying.
+#' 
+
 #' # Conclusion
 #'
 #' In all comparisons shown in this case study, model 3 was best followed
 #' by model 2 while model 1 clearly performed worst.
 #' However, depending on the particular cross-validation approach,
-#' the differences between models varied quite a lot.
+#' the differences between models varied.
+#' 
+#' The stacking model weights complement the results and show also when model
+#' averaging could improve the predictive performance.
 #' 
 #' Throughout this case study, we have used **rstanarm** for the model fitting.
 #' If instead you prefer to use **brms**, the `loo` and `kfold` methods

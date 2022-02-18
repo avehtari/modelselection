@@ -344,9 +344,9 @@ ggsave('figs/fakepsispostpred.pdf', p4sl2, width=6, height=4)
 q<-exp(loo_1$psis_object$log_weights[seq(1,4000,by=10),18]);
 q<-q/sum(q)
 pw <- mcmc_hist(data.frame(weight=q),  binwidth=1/4000) +
-    labs(title="400 importance weights for leave-18th-out", x="w_i") +
+    labs(title="400 importance weights for leave-18th-out", x="w^(s)") +
     geom_vline(xintercept=1/400, linetype=2, color="red") +
-    geom_text(x=1/400, y=60, hjust="left", label=" Equal weights", fontface="plain", size=5)
+    annotate(geom="text",x=1/400, y=54, hjust="left", label=" Equal weights", fontface="plain", size=5)
 pw 
 ggsave('figs/fakepsisweights.pdf', pw, width=6, height=4)
 
@@ -354,9 +354,9 @@ ggsave('figs/fakepsisweights.pdf', pw, width=6, height=4)
 q<-exp(loo_1$psis_object$log_weights[seq(1,4000,by=1),18]);
 q<-q/sum(q)
 pw <- mcmc_hist(data.frame(weight=q),  binwidth=1/40000) +
-    labs(title="4000 importance weights for leave-18th-out", x="w_i") +
+    labs(title="4000 importance weights for leave-18th-out", x="w^(s)") +
     geom_vline(xintercept=1/4000, linetype=2, color="red") +
-    geom_text(x=1/4000, y=550, hjust="left", label=" Equal weights", fontface="plain", size=5)
+    annotate(geom="text",x=1/4000, y=540, hjust="left", label=" Equal weights", fontface="plain", size=5)
 pw 
 ggsave('figs/fakepsisweights4000.pdf', pw, width=6, height=4)
 

@@ -1,6 +1,6 @@
 ---
 title: "Projection predictive variable selection – A review and recommendations for the practicing statistician"
-author: "Aki Vehtari"
+author: "[Aki Vehtari](https://users.aalto.fi/~ave/)"
 date: "First version 2018-03-06. Last modified `r format(Sys.Date())`."
 output:
   html_document:
@@ -14,10 +14,10 @@ bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
 ---
 
-# Setup
+# Setup {.unnumbered}
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, error=FALSE, warning=FALSE, comment=NA, out.width='95%')
 ```
 
 **Load packages**
@@ -53,7 +53,7 @@ Piironen and Vehtari [-@Piironen+Vehtari:2017a] demonstrate also the
 superior stability of projection predictive variable selection (see
 specially figures 4 and 10). In this notebook I demonstrate the projection
 predictive variable selection method as presented by Piironen, Paasiniemi and
-Vehtari [-@Piironen+etal:projpred:2018] and implemented in R package
+Vehtari [-@Piironen+etal:projpred:2020] and implemented in R package
 [`projpred`](https://cran.r-project.org/package=projpred). I use the
 same body fat data as used in Section 3.3 of the article by Heinze,
 Wallisch, and Dunkler (2017).  The dataset with the background
@@ -64,16 +64,18 @@ supplementary material. There still are some strange values like the
 one person with zero fat percentage, but I didn't do additional
 cleaning.
 
+This notebook was initially created in 2018, but has later been extended to an article "Using reference models in variable selection" by Pavone, Piironen, Bürkner and Vehtari [-@Pavone+etal:2020].
+
 The excellent performance of the projection predictive variable selection comes from following parts
  1. Bayesian inference using priors and integration over all the uncertainties makes it easy to get good predictive performance with all variables included in the model [see, e.g., @Piironen+Vehtari:RHS:2017, @Piironen+Vehtari:ISPC:2018]
- 2. Projection of the information from the full model to a smaller model is able to include information and uncertainty from the left out variables (while conditioning of the smaller model to data would ignore left out variables) [@Piironen+etal:projpred:2018].
+ 2. Projection of the information from the full model to a smaller model is able to include information and uncertainty from the left out variables (while conditioning of the smaller model to data would ignore left out variables) [@Piironen+etal:projpred:2020,@Pavone+etal:2020].
  3. During the search through the model space comparing the predictive distributions of projected smaller models to the predictive distribution of the full model reduces greatly the variance in model comparisons [@Piironen+Vehtari:2017a].
- 4. Even with greatly reduced variance in model comparison, the selection process slightly overfits to the data, but we can cross-validate this effect using the fast Pareto smoothed importance sampling leave-one-out cross-validation [@Vehtari+etal:PSIS-LOO:2017, @Vehtari+etal:PSIS:2017]
+ 4. Even with greatly reduced variance in model comparison, the selection process slightly overfits to the data, but we can cross-validate this effect using the fast Pareto smoothed importance sampling leave-one-out cross-validation [@Vehtari+etal:PSIS-LOO:2017, @Vehtari+etal:PSIS:2019]
 
 Excellent performance of projection predictive variable selection
 compared to other Bayesian variable selection methods was presented by
 Piironen and Vehtari [-@Piironen+Vehtari:2017a].  Piironen, Paasiniemi
-and Vehtari [-@Piironen+etal:projpred:2018] present further
+and Vehtari [-@Piironen+etal:projpred:2020] present further
 improvements such as improved model size selection and several options
 to make the approach faster for larger number of variables or bigger
 data sets. Vehtari and Ojanen [-@Vehtari+Ojanen:2012} present
@@ -87,6 +89,8 @@ potentially reduce the future measurement costs. In the bodyfat
 example, most of the measurements have time cost and there is a
 benefit of finding the smallest set of variables to be used in the
 future for the predictions.
+
+This notebook presents a linear regression example, but the projection predictive approach can be used also, for example, with generalized linear models [@Piironen+Vehtari:2017a,@Piironen+etal:projpred:2020], Gaussian processes [@Piironen+Vehtari:GP-projection:2016], and generalized linear and additive multilevel models [@Catalina+etal:projpredgamms:2020].
 
 # Bodyfat data
 
@@ -106,7 +110,7 @@ Lists of predictive and target variables, and formula.
 pred <- c("age", "weight", "height", "neck", "chest", "abdomen", "hip", 
           "thigh", "knee", "ankle", "biceps", "forearm", "wrist")
 target <- "siri"
-formula <- paste("siri~", paste(pred, collapse = "+"))
+formula <- formula(paste("siri ~", paste(pred, collapse = " + ")))
 p <- length(pred)
 ```
 
@@ -165,18 +169,13 @@ height as two central IVs [independent variables] for estimating body
 fat proportion, and will not subject these two to variable
 selection.'' We subject all variables to selection. 
 ```{r, results='hide'}
-fitrhs_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'LOO',
+fitrhs_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'loo',
                          nloo = n, verbose = FALSE)
-```
-
-The order of the variables:
-```{r}
-fitrhs_cvvs$vind
 ```
 
 And the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitrhs_cvvs, stats = c('elpd', 'rmse'), deltas=FALSE)
+plot(fitrhs_cvvs, stats = c('elpd', 'rmse'), deltas=FALSE)
 ```
 
 Based on the plot 2 variables and projected posterior provide
@@ -184,7 +183,8 @@ practically the same predictive performance as the full model.  We can
 get a PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] based recommendation for
 the model size to choose.
 ```{r}
-(nv <- suggest_size(fitrhs_cvvs, alpha=0.1))
+(nsel <- suggest_size(fitrhs_cvvs, alpha=0.1))
+(vsel <- solution_terms(fitrhs_cvvs)[1:nsel])
 ```
 
 Based on this recommendation we continue with two variables `abdomen`
@@ -194,13 +194,12 @@ Dunkler (2018) had seven variables `height` (fixed), `abdomen` (fixed),
 
 Form the projected posterior for the selected model.
 ```{r}
-projrhs <- project(fitrhs_cvvs, nv = nv, ns = 4000)
+projrhs <- project(fitrhs_cvvs, nv = nsel, ns = 4000)
 ```
 
 Plot the marginals of the projected posterior.
 ```{r}
-mcmc_areas(as.matrix(projrhs), 
-           pars = c(names(fitrhs_cvvs$vind[1:nv])))
+mcmc_areas(as.matrix(projrhs), pars = vsel)
 ```
 
 So far we have seen that `projpred` selected a smaller set of variables
@@ -219,9 +218,9 @@ included in __projpred__ package).
 
 ```{r}
 source("projpredpct.R")
-rows <- nrow(fitrhs_cvvs$pctch)
-col <- nrow(fitrhs_cvvs$pctch)
-pctch <- round(fitrhs_cvvs$pctch, 2)
+rows <- nrow(fitrhs_cvvs[["pct_solution_terms_cv"]])
+col <- nrow(fitrhs_cvvs[["pct_solution_terms_cv"]])
+pctch <- round(fitrhs_cvvs[["pct_solution_terms_cv"]], 2)
 colnames(pctch)[1] <- ".size"
 pct <- get_pct_arr(pctch, 13)
 col_brks <- get_col_brks()
@@ -309,7 +308,7 @@ mean square error (rmse) of mean predictions.
 
 ```{r}
   loormse_full <- sqrt(mean((df$siri-fitrhs_cvvs$summaries$ref$mu)^2))
-  loormse_proj <- sqrt(mean((df$siri-fitrhs_cvvs$summaries$sub[[nv]]$mu)^2))
+  loormse_proj <- sqrt(mean((df$siri-fitrhs_cvvs$summaries$sub[[nsel]]$mu)^2))
   print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full,1)))
   print(paste('PSIS-LOO RMSE selected projpred model: ', round(loormse_proj,1)))
 ```
@@ -408,7 +407,8 @@ not related to bodyfat in any way. We have now total of 100 variables.
 set.seed(SEED)
 noise <- array(rnorm(87*n), c(n,87))
 dfr<-cbind(df,noise=noise)
-formula2<-paste(formula,"+",paste(colnames(dfr[,20:106]), collapse = "+"))
+formula2<-formula(paste(paste("siri~", paste(pred, collapse = "+")),
+                        "+",paste(colnames(dfr[,20:106]), collapse = "+")))
 ```
 
 Given this new dataset compute do variable selection with full data and
@@ -470,19 +470,19 @@ tau0 <- p0/(p-p0) * 1/sqrt(n)
 hs_prior <- hs(global_scale=tau0)
 fitrhs2 <- stan_glm(formula2, data = dfr, prior = hs_prior, QR = TRUE, 
                    seed=SEED, refresh=0)
-fitrhs2_cvvs <- cv_varsel(fitrhs2, method = 'forward', cv_method = 'LOO',
+fitrhs2_cvvs <- cv_varsel(fitrhs2, method = 'forward', cv_method = 'loo',
                           nloo=n, verbose = FALSE)
+nsel2 <- suggest_size(fitrhs2_cvvs, alpha=0.1)
+vsel2 <- solution_terms(fitrhs2_cvvs)[1:nsel2]
 loormse_full2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$ref$mu)^2))
-loormse_proj2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$sub[[nv]]$mu)^2))
-nv2 <- suggest_size(fitrhs2_cvvs, alpha=0.1)
-print(fitrhs2_cvvs$vind[1:nv2])
+loormse_proj2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$sub[[nsel2]]$mu)^2))
 print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full2,1)))
 print(paste('PSIS-LOO RMSE selected projpred model: ', round(loormse_proj2,1)))
 ```
 
 Variable selection with `projpred` has selected 2 variables from which 0
 are random noise. PSIS-LOO RMSE for the full Bayesian model and the
-selected `projpred` model are same as with the original data. 
+selected `projpred` model are similar as with the original data. 
 
 If you don't trust PSIS-LOO you can run the following K-fold-CV to
 get almost the same result.
@@ -505,7 +505,7 @@ print(paste('10-fold-CV RMSE Bayesian projpred model: ', round(rmse_proj,1)))
 # Licenses {.unnumbered}
 
 * Code &copy; 2018, Aki Vehtari, licensed under BSD-3.
-* Text &copy; 2018, Aki Vehtari, licensed under CC-BY-NC 4.0.
+* Text &copy; 2018-2021, Aki Vehtari, licensed under CC-BY-NC 4.0.
 
 # Original Computing Environment {.unnumbered}
 

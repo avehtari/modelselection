@@ -324,7 +324,7 @@ We can also examine calibration of the posterior and LOO predictive probabilitie
 
 ```{r}
 calPlotData<-calibration(y ~ pred + loopred, 
-                         data = data.frame(pred=pred,loopred=ploo,y=y), 
+                         data = data.frame(pred=pred,loopred=ploo,y=as.factor(y)), 
                          cuts=10, class="1")
 ggplot(calPlotData, auto.key = list(columns = 2))
 ```

@@ -1,6 +1,6 @@
 ---
 title: "Bayesian variable selection for red wine quality ranking data"
-author: "Aki Vehtari"
+author: "[Aki Vehtari](https://users.aalto.fi/~ave/)"
 date: "First version 2018-02-27. Last modified `r format(Sys.Date())`."
 output:
   html_document:
@@ -47,8 +47,10 @@ dim(d)
 Remove duplicated
 ```{r}
 d <- d[!duplicated(d), ] # remove the duplicates
-dim(d)
+(p <- ncol(d))
+(n <- nrow(d))
 names(d)
+prednames <- names(d)[1:(p-1)]
 ```
 
 We scale the covariates so that when looking at the marginal posteriors for the effects they are on the same scale. 
@@ -61,17 +63,18 @@ df <- as.data.frame(ds)
 
 The `rstanarm` package provides `stan_glm` which accepts same arguments as `glm`, but makes full Bayesian inference using Stan ([mc-stan.org](https://mc-stan.org)). By default a weakly informative Gaussian prior is used for weights.
 ```{r, results='hide'}
-fitg <- stan_glm(quality ~ ., data = df, QR=TRUE, seed=SEED, refresh=0)
+formula <- formula(paste("quality ~", paste(prednames, collapse = " + ")))
+fitg <- stan_glm(formula, data = df, QR=TRUE, seed=SEED, refresh=0)
 ```
 Let's look at the summary:
 ```{r}
-monitor(fitg$stanfit)
+summary(fitg)
 ```
 
 We didn't get divergences, Rhat's are less than 1.1 and n_eff's are useful (see, e.g., [RStan workflow](http://mc-stan.org/users/documentation/case-studies/rstan_workflow.html)).
 
 ```{r}
-mcmc_areas(as.matrix(fitg),prob_outer = .95)
+mcmc_areas(as.matrix(fitg), pars=prednames, prob_outer = .95)
 ```
 
 Several 95% posterior intervals are not overlapping 0, so maybe there is something useful here.
@@ -96,48 +99,47 @@ Based on cross-validation covariates together have a high predictive power. If w
 
 We make the projective predictive variable selection [@Piironen+etal:projpred:2018; @Piironen+Vehtari:2017a] using `projpred` package. A fast PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] is used to choose the model size.
 ```{r, results='hide'}
-fitg_cv <- cv_varsel(fitg, method='forward', cv_method='LOO', n_loo=nrow(df))
-```
-
-```{r}
-fitg_cv$vind
+fitg_cv <- cv_varsel(fitg, method='forward', cv_method='loo', n_loo=nrow(df))
 ```
 
 We can now look at the estimated predictive performance of smaller models compared to the full model.
 ```{r}
-varsel_plot(fitg_cv, stats = c('elpd', 'rmse'))
+plot(fitg_cv, stats = c('elpd', 'rmse'))
 ```
 
 Three or four variables seems to be needed to get the same performance as the full model.
 We can get a loo-cv based recommendation for the model size to choose.
 ```{r}
-(nv <- suggest_size(fitg_cv, alpha=0.1))
+(nsel <- suggest_size(fitg_cv, alpha=0.1))
+(vsel <- solution_terms(fitg_cv)[1:nsel])
 ```
 projpred recommends to use four variables: alcohol, volatile.acidity, sulphates, and chlorides.
 
 Next we form the projected posterior for the chosen model. This projected model can be used in the future to make predictions by using only the selected variables.
 ```{r}
-projg <- project(fitg_cv, nv = nv, ns = 4000)
+projg <- project(fitg_cv, nv = nsel, ns = 4000)
 round(colMeans(as.matrix(projg)), 1)
 round(posterior_interval(as.matrix(projg)), 1)
 ```
 
 The marginals of projected posteriors look like this.
 ```{r}
-mcmc_areas(as.matrix(projg), 
-           pars = c('(Intercept)', names(fitg_cv$vind[1:nv])))
+mcmc_areas(as.matrix(projg), pars = vsel)
 ```
 
 # Alternative regularized horseshoe prior
 
 We also test regularized horseshoe prior [@Piironen+Vehtari:RHS:2017] which has more prior mass near 0.
 ```{r, results='hide'}
-fitrhs <- stan_glm(quality ~ ., data = df, prior=hs(),
+p0 <- 5 # prior guess for the number of relevant variables
+tau0 <- p0/(p-p0) * 1/sqrt(n)
+hs_prior <- hs(df=1, global_df=1, global_scale=tau0)
+fitrhs <- stan_glm(formula, data = df, prior=hs_prior,
                    seed=SEED, refresh=0)
 ```
 
 ```{r}
-mcmc_areas(as.matrix(fitrhs), prob_outer = .95)
+mcmc_areas(as.matrix(fitrhs), pars=prednames, prob_outer = .95)
 ```
 
 Many of the variables are shrunk more towards 0, but still based on these marginals it is not as easy to select the most useful variables as it is with projpred.
