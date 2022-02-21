@@ -12,6 +12,7 @@ output:
       smooth_scroll: FALSE
 bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
+link-citations: yes
 ---
 
 # Setup  {.unnumbered}
@@ -35,7 +36,7 @@ SEED=170701694
 
 This notebook was inspired by Eric Novik's slides "Deconstructing Stan Manual Part 1: Linear". The idea is to demonstrate how easy it is to do good variable selection with [`rstanarm`](https://cran.r-project.org/package=rstanarm), [`loo`](https://cran.r-project.org/package=loo), and [`projpred`](https://cran.r-project.org/package=projpred).
 
-In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] and projection predictive approach [@Piironen+etal:projpred:2018; @Piironen+Vehtari:2017a] which makes decision theoretically justified inference after model selection..
+In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] and projection predictive approach [@Piironen+etal:projpred:2020; @Piironen+Vehtari:2017a] which makes decision theoretically justified inference after model selection..
 
 # Wine quality data
 
@@ -97,7 +98,7 @@ Based on cross-validation covariates together have a high predictive power. If w
 
 # Projection predictive variable selection
 
-We make the projective predictive variable selection [@Piironen+etal:projpred:2018; @Piironen+Vehtari:2017a] using `projpred` package. A fast PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] is used to choose the model size.
+We make the projective predictive variable selection [@Piironen+etal:projpred:2020; @Piironen+Vehtari:2017a] using `projpred` package. A fast PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] is used to choose the model size.
 ```{r, results='hide'}
 fitg_cv <- cv_varsel(fitg, method='forward', cv_method='loo', n_loo=nrow(df))
 ```

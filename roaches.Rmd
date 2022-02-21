@@ -12,6 +12,7 @@ output:
       smooth_scroll: FALSE
 bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
+link-citations: yes
 ---
 
 # Setup  {.unnumbered}

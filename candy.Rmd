@@ -14,6 +14,7 @@ output:
     code_download: true
 bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
+link-citations: yes
 ---
 
 # Setup  {.unnumbered}
@@ -38,7 +39,7 @@ SEED=150702646
 
 This notebook was inspired by Joshua Loftus' two blog posts [Model selection bias invalidates significance tests](http://joshualoftus.com/post/model-selection-bias-invalidates-significance-tests/) and [A conditional approach to inference after model selection](http://joshualoftus.com/post/conditional-approach-to-inference-after-model-selection/).
 
-In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] and projection predictive approach [@Piironen+etal:projpred:2018; @Piironen+Vehtari:2017a] which makes decision theoretically justified inference after model selection..
+In this notebook we illustrate Bayesian inference for model selection, including PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] and projection predictive approach [@Piironen+etal:projpred:2020; @Piironen+Vehtari:2017a] which makes decision theoretically justified inference after model selection..
 
 # Data
 

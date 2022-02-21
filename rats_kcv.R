@@ -12,6 +12,7 @@
 #'       smooth_scroll: FALSE
 #' bibliography: modelsel.bib
 #' csl: harvard-cite-them-right.csl
+#' link-citations: yes
 #' ---
 
 #' # Setup  {.unnumbered}
@@ -103,7 +104,7 @@ pr1
 #' if we were comparing different conditional observation models.
 #'
 #' The `loo` package offers a fast Pareto smoothed importance sampling
-#' approximation of LOO [@Vehtari+etal:PSIS-LOO:2017,Vehtari+etal:PSIS:2017]
+#' approximation of LOO [@Vehtari+etal:PSIS-LOO:2017;@Vehtari+etal:PSIS:2019]
 loo_1 <- loo(fit_1)
 loo_2 <- loo(fit_2)
 loo_3 <- loo(fit_3)

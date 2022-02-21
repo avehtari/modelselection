@@ -12,6 +12,7 @@ output:
       smooth_scroll: FALSE
 bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
+link-citations: yes
 ---
 
 # Setup {.unnumbered}
@@ -137,7 +138,7 @@ treatment variable improves predictive performance. We use fast Pareto smoothed 
 (loo_bin2 <- loo(fit_bin2b))
 (loo_bin2null <- loo(fit_bin2bnull))
 ```
-All Pareto $k<0.5$ and we can trust PSIS-LOO result [@Vehtari+etal:PSIS-LOO:2017; @Vehtari+etal:PSIS:2017].
+All Pareto $k<0.5$ and we can trust PSIS-LOO result [@Vehtari+etal:PSIS-LOO:2017; @Vehtari+etal:PSIS:2019].
 
 Let's make pairwise comparison.
 ```{r}
@@ -177,7 +178,7 @@ ggplot(refprobs_densities, aes(x = values, y = ind, height = scaled)) +
   geom_density_ridges(stat = "identity", scale=0.6)
 ```
 
-We can see better accuracy than for cross-validation. The similar improvement in the model selection performance is observed in projection predictive variable selection [@Piironen+Vehtari:2017a; @Piironen+etal:projpred:2018] implemented in [`projpred` package](https://cran.r-project.org/package=projpred).
+We can see better accuracy than for cross-validation. The similar improvement in the model selection performance is observed in projection predictive variable selection [@Piironen+Vehtari:2017a; @Piironen+etal:projpred:2020] implemented in [`projpred` package](https://cran.r-project.org/package=projpred).
 
 # Marginal likelihood
 

@@ -12,6 +12,7 @@ output:
       smooth_scroll: FALSE
 bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
+link-citations: yes
 ---
 
 # Setup {.unnumbered}
@@ -47,13 +48,12 @@ knowledge, or combinations thereof.'' I agree that they provide
 sensible recommendations and warnings for those methods.
 Similar recommendations and warnings hold for information criterion
 and naive cross-validation based variable selection in Bayesian
-framework as demonstrated by Piironen and Vehtari [-@Piironen+Vehtari:2017a].
+framework as demonstrated by @Piironen+Vehtari:2017a.
 
-Piironen and Vehtari [-@Piironen+Vehtari:2017a] demonstrate also the
+@Piironen+Vehtari:2017a demonstrate also the
 superior stability of projection predictive variable selection (see
 specially figures 4 and 10). In this notebook I demonstrate the projection
-predictive variable selection method as presented by Piironen, Paasiniemi and
-Vehtari [-@Piironen+etal:projpred:2020] and implemented in R package
+predictive variable selection method as presented by @Piironen+etal:projpred:2020 and implemented in R package
 [`projpred`](https://cran.r-project.org/package=projpred). I use the
 same body fat data as used in Section 3.3 of the article by Heinze,
 Wallisch, and Dunkler (2017).  The dataset with the background
@@ -64,21 +64,21 @@ supplementary material. There still are some strange values like the
 one person with zero fat percentage, but I didn't do additional
 cleaning.
 
-This notebook was initially created in 2018, but has later been extended to an article "Using reference models in variable selection" by Pavone, Piironen, Bürkner and Vehtari [-@Pavone+etal:2020].
+This notebook was initially created in 2018, but has later been extended to an article "Using reference models in variable selection" by @Pavone+etal:2020.
 
 The excellent performance of the projection predictive variable selection comes from following parts
- 1. Bayesian inference using priors and integration over all the uncertainties makes it easy to get good predictive performance with all variables included in the model [see, e.g., @Piironen+Vehtari:RHS:2017, @Piironen+Vehtari:ISPC:2018]
- 2. Projection of the information from the full model to a smaller model is able to include information and uncertainty from the left out variables (while conditioning of the smaller model to data would ignore left out variables) [@Piironen+etal:projpred:2020,@Pavone+etal:2020].
- 3. During the search through the model space comparing the predictive distributions of projected smaller models to the predictive distribution of the full model reduces greatly the variance in model comparisons [@Piironen+Vehtari:2017a].
- 4. Even with greatly reduced variance in model comparison, the selection process slightly overfits to the data, but we can cross-validate this effect using the fast Pareto smoothed importance sampling leave-one-out cross-validation [@Vehtari+etal:PSIS-LOO:2017, @Vehtari+etal:PSIS:2019]
+
+1. Bayesian inference using priors and integration over all the uncertainties makes it easy to get good predictive performance with all variables included in the model [@Piironen+Vehtari:RHS:2017; @Piironen+Vehtari:ISPC:2018; @Piironen+etal:projpred:2020]
+2. Projection of the information from the full model to a smaller model is able to include information and uncertainty from the left out variables (while conditioning of the smaller model to data would ignore left out variables) [@Piironen+etal:projpred:2020; @Pavone+etal:2020].
+3. During the search through the model space comparing the predictive distributions of projected smaller models to the predictive distribution of the full model reduces greatly the variance in model comparisons [@Piironen+Vehtari:2017a].
+4. Even with greatly reduced variance in model comparison, the selection process slightly overfits to the data, but we can cross-validate this effect using the fast Pareto smoothed importance sampling leave-one-out cross-validation [@Vehtari+etal:PSIS-LOO:2017; @Vehtari+etal:PSIS:2019]
 
 Excellent performance of projection predictive variable selection
 compared to other Bayesian variable selection methods was presented by
-Piironen and Vehtari [-@Piironen+Vehtari:2017a].  Piironen, Paasiniemi
-and Vehtari [-@Piironen+etal:projpred:2020] present further
+@Piironen+Vehtari:2017a.  @Piironen+etal:projpred:2020 present further
 improvements such as improved model size selection and several options
 to make the approach faster for larger number of variables or bigger
-data sets. Vehtari and Ojanen [-@Vehtari+Ojanen:2012} present
+data sets. @Vehtari+Ojanen:2012 present
 theoretical justification for projection predictive model selection
 and inference after selection.
 
@@ -90,7 +90,7 @@ example, most of the measurements have time cost and there is a
 benefit of finding the smallest set of variables to be used in the
 future for the predictions.
 
-This notebook presents a linear regression example, but the projection predictive approach can be used also, for example, with generalized linear models [@Piironen+Vehtari:2017a,@Piironen+etal:projpred:2020], Gaussian processes [@Piironen+Vehtari:GP-projection:2016], and generalized linear and additive multilevel models [@Catalina+etal:projpredgamms:2020].
+This notebook presents a linear regression example, but the projection predictive approach can be used also, for example, with generalized linear models [@Piironen+Vehtari:2017a; @Piironen+etal:projpred:2020], Gaussian processes [@Piironen+Vehtari:GP-projection:2016], and generalized linear and additive multilevel models [@Catalina+etal:projpredgamms:2020].
 
 # Bodyfat data
 
@@ -124,8 +124,7 @@ corrplot(cor(df[, c(target,pred)]))
 Fit full Bayesian model. We use weakly informative regularized
 horseshoe prior [Piironen+Vehtari:RHS:2017] to include prior
 assumption that some of the variables might be irrelevant. The
-selected $p_0$ is mean for the prior assumption. See Piironen and
-Vehtari [-@Piironen+Vehtari:RHS:2017] for the uncertainty around the
+selected $p_0$ is mean for the prior assumption. See @Piironen+Vehtari:RHS:2017 for the uncertainty around the
 implied prior for effectively non-zero coefficients.
 ```{r}
 p0 <- 5 # prior guess for the number of relevant variables
@@ -395,8 +394,7 @@ in a model, and often we are confronted with the number of candidate
 variables in the range 10-30. This number is often too large to be
 considered in a statistical model.'' I strongly disagree with this as
 there are many statistical models working with more than million
-candidate variables (see, e.g., Peltola, Marttinen, Vehtari
-[-@Peltola+etal:finite:2012]. As the bodyfat dataset proved to be
+candidate variables (see, e.g., @Peltola+etal:finite:2012). As the bodyfat dataset proved to be
 quite easy in that sense that maximum likelihood performed well
 compared to Bayesian approach, let's make the dataset a bit more
 challenging.

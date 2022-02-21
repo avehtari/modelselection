@@ -12,6 +12,7 @@ output:
       smooth_scroll: FALSE
 bibliography: modelsel.bib
 csl: harvard-cite-them-right.csl
+link-citations: yes
 ---
 
 # Setup  {.unnumbered}
@@ -35,7 +36,7 @@ SEED=87
 
 # Introduction
 
-This notebook was inspired by Andrew Tyre's blog post [Does model averaging make sense?](https://atyre2.github.io/2017/06/16/rebutting_cade.html). Tyre discusses problems in current statistical practices in ecology, focusing in multi-collinearity, model averaging and measuring the relative importance of variables. Tyre's post is commenting a paper [Model averaging and muddled multimodel inferences](http://onlinelibrary.wiley.com/doi/10.1890/14-1639.1/full.) In his blog post he uses maximum likelihood and AIC_c. Here we provide a Bayesian approach for handling multicollinearity, model averaging and measuring relative importance of variables using packages [`rstanarm`](https://cran.r-project.org/package=rstanarm), [`bayesplot`](https://cran.r-project.org/package=bayesplot), [`loo`](https://cran.r-project.org/package=loo) and [`projpred`](https://cran.r-project.org/package=projpred). We demonstrate the benefits of Bayesian posterior analysis [@BDA3] and projection predictive approach [@Piironen+etal:projpred:2018; @Piironen+Vehtari:2017a].
+This notebook was inspired by Andrew Tyre's blog post [Does model averaging make sense?](https://atyre2.github.io/2017/06/16/rebutting_cade.html). Tyre discusses problems in current statistical practices in ecology, focusing in multi-collinearity, model averaging and measuring the relative importance of variables. Tyre's post is commenting a paper [Model averaging and muddled multimodel inferences](http://onlinelibrary.wiley.com/doi/10.1890/14-1639.1/full.) In his blog post he uses maximum likelihood and AIC_c. Here we provide a Bayesian approach for handling multicollinearity, model averaging and measuring relative importance of variables using packages [`rstanarm`](https://cran.r-project.org/package=rstanarm), [`bayesplot`](https://cran.r-project.org/package=bayesplot), [`loo`](https://cran.r-project.org/package=loo) and [`projpred`](https://cran.r-project.org/package=projpred). We demonstrate the benefits of Bayesian posterior analysis [@BDA3] and projection predictive approach [@Piironen+etal:projpred:2020; @Piironen+Vehtari:2017a].
 
 # Data
 
@@ -117,9 +118,9 @@ Based on cross-validation covariates together contain significant information to
 
 We might want to choose some variables 1) because we don't want to observe all the variables in the future (e.g. due to the measurement cost), or 2) we want to most relevant variables which we define here as a minimal set of variables which can provide similar predictions to the full model.
 
-Tyre used AIC_c to estimate the model performance. In Bayesian setting we could use Bayesian cross-validation or WAIC, but we don't recommend thhem for variable selection as discussed by Piironen and Vehtari [-@Piironen+Vehtari:2017a]. The reason for not using Bayesian CV or WAIC is that the selection process uses the data twice, and in case of large number variable combinations the selection process overfits and can produce really bad models. Using the usual posterior inference given the selected variables ignores that the selected variables are conditonal on the selection process and simply setting some variables to 0 ignores the uncertainty related to their relevance.
+Tyre used AIC_c to estimate the model performance. In Bayesian setting we could use Bayesian cross-validation or WAIC, but we don't recommend thhem for variable selection as discussed by @Piironen+Vehtari:2017a. The reason for not using Bayesian CV or WAIC is that the selection process uses the data twice, and in case of large number variable combinations the selection process overfits and can produce really bad models. Using the usual posterior inference given the selected variables ignores that the selected variables are conditonal on the selection process and simply setting some variables to 0 ignores the uncertainty related to their relevance.
 
-Piironen and Vehtari [-@Piironen+Vehtari:2017a] also show that a projection predictive approach can be used to make a model reduction, that is, choosing a smaller model with some coefficients set to 0. The projection predictive approach solves the problem how to do inference after the selection. The solution is to project the full model posterior to the restricted subspace. See more in Piironen etal [-@Piironen+etal:projpred:2018].
+@Piironen+Vehtari:2017a also show that a projection predictive approach can be used to make a model reduction, that is, choosing a smaller model with some coefficients set to 0. The projection predictive approach solves the problem how to do inference after the selection. The solution is to project the full model posterior to the restricted subspace. See more by @Piironen+etal:projpred:2020.
 
 We make the projective predictive variable selection using the previous full model. A fast leave-one-out cross-validation approach [@Vehtari+etal:PSIS-LOO:2017] is used to choose the model size.
 ```{r, results='hide'}
