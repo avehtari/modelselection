@@ -103,11 +103,9 @@ predictive performance. This corresponds to using the already seen
 observations as pseudo Monte Carlo samples from the future data
 distribution, with the leave-trick used to avoid double use of data.
 With the often used log-score we get
-$$\mathrm{LOO} = \frac{1}{n} \sum_{i=1}^n \log {p(y_i|x_i,D_{-i},M_k)}$$.
-Cross-validation is useful in $M$-open case [@Vehtari+Ojanen:2012],
-when we don't trust any model to present the future data well (they
-might, but we just don't have enough confidence to trust them to do
-so).
+$$\mathrm{LOO} = \frac{1}{n} \sum_{i=1}^n \log {p(y_i|x_i,D_{-i},M_k)}.$$
+Cross-validation is useful when we don't trust any model (the
+models might include good enough models, but we just don't know if that is the case).
 
 Next we demonstrate one of the weaknesses of cross-validation (same
 holds for WAIC etc.).
@@ -182,7 +180,7 @@ We can see better accuracy than for cross-validation. The similar improvement in
 
 # Marginal likelihood
 
-As comparison we include marginal likelihood based approach to compute the posterior probabilities for the null model (treatment effect is zero) and the model with unknown treatment effect. As the data and models are very simple, we may assume $M$-closed case. Marginal likelihoods and relative posterior probabilities can be sensitive to selected prior on the more complex model. Here we simply use the same prior as for the above examples. Marginal likelihoods are computed using the default bridge sampling approach implemented in `bridge_sampling` package.
+As comparison we include marginal likelihood based approach to compute the posterior probabilities for the null model (treatment effect is zero) and the model with unknown treatment effect. As the data and models are very simple, we may assume that the model is well specified. Marginal likelihoods and relative posterior probabilities can be sensitive to selected prior on the more complex model. Here we simply use the same prior as for the above examples. Marginal likelihoods are computed using the default bridge sampling approach implemented in `bridge_sampling` package.
 
 ## Analysis of the observed data
 
