@@ -169,7 +169,7 @@ fat proportion, and will not subject these two to variable
 selection.'' We subject all variables to selection. 
 ```{r, results='hide'}
 fitrhs_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'loo',
-                         nloo = n, verbose = FALSE)
+                         verbose = FALSE)
 ```
 
 And the estimated predictive performance of smaller models compared to the full model.
@@ -469,7 +469,7 @@ hs_prior <- hs(global_scale=tau0)
 fitrhs2 <- stan_glm(formula2, data = dfr, prior = hs_prior, QR = TRUE, 
                    seed=SEED, refresh=0)
 fitrhs2_cvvs <- cv_varsel(fitrhs2, method = 'forward', cv_method = 'loo',
-                          nloo=n, verbose = FALSE)
+                          verbose = FALSE)
 nsel2 <- suggest_size(fitrhs2_cvvs, alpha=0.1)
 vsel2 <- solution_terms(fitrhs2_cvvs)[1:nsel2]
 loormse_full2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$ref$mu)^2))
