@@ -243,7 +243,7 @@ ggplot(pct, aes_(x = ~.size, y = ~var)) +
           axis.text.y = element_text(angle = 45))
 ```
 
-For model sizes 1-3 selection paths in different LOO-CV cases are always the same `abdomen?, `weight`, and `wrist`. For larger model sizes there are some small variation, but mostly the order is quite consistent. 
+For model sizes 1-3 selection paths in different LOO-CV cases are always the same `abdomen`, `weight`, and `wrist`. For larger model sizes there are some small variation, but mostly the order is quite consistent. 
 
 Running `stan_glm` with `prior=hs()` and `cv_varsel` do not take much time when run only once, but for a notebook running them 1000 times would take hours. The code for running the above variable selection procedure for 100 different bootstrapped datasets is as follows.
 ```{r}
