@@ -235,7 +235,7 @@ ggplot(pct, aes_(x = ~.size, y = ~var)) +
         geom_text(aes_(label = ~val, fontface = ~sel+1)) +
     coord_cartesian(expand = FALSE) +
     scale_y_discrete(limits = rev(levels(pct$var))) +
-    scale_x_discrete(limits = seq(1,col)) +
+    scale_x_discrete(limits = factor(seq(1,col))) +
     scale_color_manual(values = c("white", "black")) +
     labs(x = "Model size", y = "",
          title = "Fraction of cv-folds that select the given variable") +
