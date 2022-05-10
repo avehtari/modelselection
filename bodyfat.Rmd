@@ -193,7 +193,7 @@ Dunkler (2018) had seven variables `height` (fixed), `abdomen` (fixed),
 
 Form the projected posterior for the selected model.
 ```{r}
-projrhs <- project(fitrhs_cvvs, nv = nsel, ns = 4000)
+projrhs <- project(fitrhs_cvvs, nterms = nsel, ndraws = 4000)
 ```
 
 Plot the marginals of the projected posterior.
