@@ -38,10 +38,13 @@ for (k in 1:K) {
         refresh = 0
     )
     fit_cvvs_k <- cv_varsel(fit_k, method='forward', cv_method='LOO',
-                            nloo=nrow(df[-omitted,, drop=FALSE]))
+                            # TODO: This usage of `nloo` is probably not doing what it's
+                            # supposed to, at least in the current CRAN version of projpred:
+                            nloo=nrow(df[-omitted,, drop=FALSE]),
+                            seed = 1513306866 + k)
     nvk <- suggest_size(fit_cvvs_k,alpha=0.1)
     vsnvss[[k]] <- nvk
-    proj_k <- project(fit_cvvs_k, nv = nvk, ns = 4000)
+    proj_k <- project(fit_cvvs_k, nterms = nvk, ndraws = 4000)
     muss[[k]] <-
         colMeans(posterior_linpred(fit_k,
                                    newdata = df[omitted, , drop = FALSE]))
