@@ -33,12 +33,12 @@ for (i in 1:bootnum) {
   bbn[i,] <- length(unique(data_id))
   fitb <- stan_glm(formula, data = df[data_id, ], 
                       prior=rhs_prior, QR=TRUE, seed=i, refresh=0)
-  bcvvs <- cv_varsel(fitb, method='forward', cv_method='LOO', nloo=n,
-                       verbose = FALSE)
+  bcvvs <- cv_varsel(fitb, method='forward', cv_method='LOO',
+                     seed = 5437854-i, verbose = FALSE)
   print(nv <- suggest_size(bcvvs,alpha=0.1))
   boot_nvs[i,] <- nv
   print(bcvvs$vind[1:nv])
-  projb <- project(bcvvs, nv = nv, ns = 4000)
+  projb <- project(bcvvs, nterms = nv, ndraws = 4000)
   boot_est[i, colnames(as.matrix(projb)[,-(nv+2)])] <- colMeans(as.matrix(projb)[,-(nv+2)])
 }
 boot_01 <- (boot_est != 0) * 1
