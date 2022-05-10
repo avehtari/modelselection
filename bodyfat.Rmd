@@ -217,9 +217,11 @@ included in __projpred__ package).
 
 ```{r}
 source("projpredpct.R")
-rows <- nrow(fitrhs_cvvs[["pct_solution_terms_cv"]])
-col <- nrow(fitrhs_cvvs[["pct_solution_terms_cv"]])
-pctch <- round(fitrhs_cvvs[["pct_solution_terms_cv"]], 2)
+pct_cum <- apply(fitrhs_cvvs[["pct_solution_terms_cv"]][, -1], 2, cumsum)
+pct_cum <- cbind(fitrhs_cvvs[["pct_solution_terms_cv"]][, 1, drop = FALSE], pct_cum)
+rows <- nrow(pct_cum)
+col <- nrow(pct_cum)
+pctch <- round(pct_cum, 2)
 colnames(pctch)[1] <- ".size"
 pct <- get_pct_arr(pctch, 13)
 col_brks <- get_col_brks()
