@@ -21,53 +21,22 @@ p0 <- 5 # prior guess for the number of relevant variables
 tau0 <- p0/(p-p0) * 1/sqrt(n)
 rhs_prior <- hs(global_scale=tau0)
 
-set.seed(1513306866)
-perm <- sample.int(n)
-K <- 20
-idx <- ceiling(seq(from = 1, to = n, length.out = K + 1))
-bin <- .bincode(perm, breaks = idx, right = FALSE, include.lowest = TRUE)
-
 fitrhs2 <- stan_glm(formula2, data = dfr, prior=rhs_prior, QR=TRUE, 
                     seed=1513306866, refresh=0)
-muss <- list()
-vsmuss <- list()
-vsnvss <- list()
-vsnvss2 <- list()
-vsnvss3 <- list()
-fitcvs <- list()
-for (k in 1:K) {
-    message("Fitting model ", k, " out of ", K)
-    omitted <- which(bin == k)
-    fit_k <- update(
-        object = fitrhs2,
-        data = dfr[-omitted,, drop=FALSE],
-        weights = NULL,
-        refresh = 0
-    )
-    muss[[k]] <-
-        colMeans(posterior_linpred(fit_k,
-                                   newdata = dfr[omitted, , drop = FALSE]))
-    fit_cvvs_k <- cv_varsel(fit_k, method='forward', cv_method='LOO',
-                            # TODO: This usage of `nloo` is probably not doing what it's
-                            # supposed to, at least in the current CRAN version of projpred:
-                            nloo = length(which(bin != k)),
-                            nterms_max=10,
-                            seed = 1513306866 + k, verbose = FALSE)
-    fitcvs[[k]] <- fit_cvvs_k
-}
-for (k in 1:K) {
-    omitted <- which(bin == k)
-    fit_cvvs_k <- fitcvs[[k]]
-    print(nvk <- suggest_size(fit_cvvs_k, alpha=0.1))
-    vsnvss[[k]] <- nvk
-    fit_cvvs_k$vind[1:nvk]
-    proj_k <- project(fit_cvvs_k, nterms = nvk, ndraws = 4000)
-    vsmuss[[k]] <-
-        colMeans(proj_linpred(proj_k, xnew = dfr[omitted, , drop = FALSE]))
-}
-mus<-unlist(muss)[order(as.integer(names(unlist(muss))))]
-vsmus<-unlist(vsmuss)[order(as.integer(names(unlist(vsmuss))))]
-vsnvs2 <- unlist(vsnvss)
-rmse_full2 <- sqrt(mean((df$siri-mus)^2))
-(rmse_proj2 <- sqrt(mean((df$siri-vsmus)^2)))
-save(vsnvs2, rmse_full2, rmse_proj2, file = "bodyfat_kfoldcv2.RData")
+
+# NOTE: In contrast to the previous code where `ndraws = 4000` was used in
+# project(), the following cv_varsel() call uses `ndraws_pred = 400` by default.
+# Of course, `ndraws_pred = 4000` could be used instead, but that would increase
+# runtime considerably, because `ndraws_pred = 4000` not only applies to the
+# suggested model size, but all model sizes.
+fit_cvvs2 <- cv_varsel(fitrhs2, method='forward', cv_method='kfold', K = 20,
+                       nterms_max=10, seed = 1513306866 + 1, verbose = FALSE)
+print(nv2 <- suggest_size(fit_cvvs2, alpha=0.1))
+# Currently (projpred v2.1.1), we need to use the internal projpred function
+# .tabulate_stats() to obtain the reference model's performance:
+rmse_full2 <- projpred:::.tabulate_stats(fit_cvvs2, stats = "rmse")
+rmse_full2 <- rmse_full2$value[rmse_full2$size == Inf]
+# For the submodel, this is the way to go:
+smmry2 <- summary(fit_cvvs2, stats = "rmse", nterms_max = nv2)
+(rmse_proj2 <- smmry2$selection$rmse.kfold[smmry2$selection$size == nv2])
+save(nv2, rmse_full2, rmse_proj2, file = "bodyfat_kfoldcv2.RData")
