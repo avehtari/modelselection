@@ -2,26 +2,32 @@
 
 df <- read.table(here("bodyfat.txt"), header = T, sep = ";")
 df[,4:19] <- scale(df[,4:19])
+# no-one can have 0% body fat
+df <- df[df$siri>0,]
 df <- as.data.frame(df)
 n <- nrow(df)
-colnames(df[c("weight_kg", "height")]) <- c("weight", "height")
+### There is already a variable called `weight` with almost the same values:
+# colnames(df[c("weight_kg")]) <- c("weight")
+###
 
 pred <- c("age", "weight", "height", "neck", "chest", "abdomen", "hip", 
           "thigh", "knee", "ankle", "biceps", "forearm", "wrist")
 target <- "siri"
-formula <- paste("siri~", paste(pred, collapse = "+"))
+formula_chr <- paste("siri~", paste(pred, collapse = "+"))
 
 set.seed(1513306866)
 noise <- array(rnorm(87*n), c(n,87))
 dfr<-cbind(df,noise=noise)
-formula2<-paste(formula,"+",paste(colnames(dfr[,20:106]), collapse = "+"))
+formula_obj2<-as.formula(
+  paste(formula_chr,"+",paste(colnames(dfr[,20:106]), collapse = "+"))
+)
 p <- 100
 
 p0 <- 5 # prior guess for the number of relevant variables
 tau0 <- p0/(p-p0) * 1/sqrt(n)
 rhs_prior <- hs(global_scale=tau0)
 
-fitrhs2 <- stan_glm(formula2, data = dfr, prior=rhs_prior, QR=TRUE, 
+fitrhs2 <- stan_glm(formula_obj2, data = dfr, prior=rhs_prior, QR=TRUE, 
                     seed=1513306866, refresh=0)
 
 # NOTE: In contrast to the previous code where `ndraws = 4000` was used in
@@ -32,11 +38,7 @@ fitrhs2 <- stan_glm(formula2, data = dfr, prior=rhs_prior, QR=TRUE,
 fit_cvvs2 <- cv_varsel(fitrhs2, method='forward', cv_method='kfold', K = 20,
                        nterms_max=10, seed = 1513306866 + 1, verbose = FALSE)
 print(nv2 <- suggest_size(fit_cvvs2, alpha=0.1))
-# Currently (projpred v2.1.1), we need to use the internal projpred function
-# .tabulate_stats() to obtain the reference model's performance:
-rmse_full2 <- projpred:::.tabulate_stats(fit_cvvs2, stats = "rmse")
-rmse_full2 <- rmse_full2$value[rmse_full2$size == Inf]
-# For the submodel, this is the way to go:
-smmry2 <- summary(fit_cvvs2, stats = "rmse", nterms_max = nv2)
-(rmse_proj2 <- smmry2$selection$rmse.kfold[smmry2$selection$size == nv2])
+perfs2 <- performances(fit_cvvs2, stats = "rmse", nterms_max = nv2)
+rmse_full2 <- unname(perfs2$reference_model["rmse"])
+rmse_proj2 <- perfs2$submodels$rmse[perfs2$submodels$size == nv2]
 save(nv2, rmse_full2, rmse_proj2, file = "bodyfat_kfoldcv2.RData")
