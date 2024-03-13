@@ -8,14 +8,18 @@ library(dplyr)
 #' Bootstrap iterations for projpred for bodyfat
 df <- read.table(here("bodyfat.txt"), header = T, sep = ";")
 df[,4:19] <- scale(df[,4:19])
+# no-one can have 0% body fat
+df <- df[df$siri>0,]
 df <- as.data.frame(df)
 n <- nrow(df)
-colnames(df[c("weight_kg", "height")]) <- c("weight", "height")
+### There is already a variable called `weight` with almost the same values:
+# colnames(df[c("weight_kg")]) <- c("weight")
+###
 
 pred <- c("age", "weight", "height", "neck", "chest", "abdomen", "hip", 
           "thigh", "knee", "ankle", "biceps", "forearm", "wrist")
 target <- "siri"
-formula <- paste("siri~", paste(pred, collapse = "+"))
+formula_obj <- as.formula(paste("siri~", paste(pred, collapse = "+")))
 p <- length(pred)
 
 p0 <- 2 # prior guess for the number of relevant variables
@@ -31,14 +35,14 @@ for (i in 1:bootnum) {
   set.seed(5437854+i)
   data_id <- sample(1:dim(df)[1], replace = T)
   bbn[i,] <- length(unique(data_id))
-  fitb <- stan_glm(formula, data = df[data_id, ], 
+  fitb <- stan_glm(formula_obj, data = df[data_id, ], 
                       prior=rhs_prior, QR=TRUE, seed=i, refresh=0)
-  bcvvs <- cv_varsel(fitb, method='forward', cv_method='LOO', nloo=n,
-                       verbose = FALSE)
+  bcvvs <- cv_varsel(fitb, method='forward', cv_method='LOO',
+                     seed = 5437854-i, verbose = FALSE)
   print(nv <- suggest_size(bcvvs,alpha=0.1))
   boot_nvs[i,] <- nv
   print(bcvvs$vind[1:nv])
-  projb <- project(bcvvs, nv = nv, ns = 4000)
+  projb <- project(bcvvs, nterms = nv, ndraws = 4000)
   boot_est[i, colnames(as.matrix(projb)[,-(nv+2)])] <- colMeans(as.matrix(projb)[,-(nv+2)])
 }
 boot_01 <- (boot_est != 0) * 1
@@ -47,7 +51,7 @@ boot_01 <- data.frame(boot_01)
 
 bn <- data.frame(boot_nvs) %>% group_by_all() %>% count(sort=TRUE)
 bd <- boot_01 %>% group_by_at(vars(-X.Intercept.)) %>% count(sort=TRUE)
-boot_inclusion <- boot_inclusion %>% tibble::rownames_to_column(var="variable") %>% filter(variable != "X.Intercept.") %>% arrange(-projpred_incp)
+boot_inclusion <- boot_inclusion %>% tibble::rownames_to_column(var="variable") %>% filter(variable != "(Intercept)") %>% arrange(-projpred_incp)
 boot_inclusion$steplm_incp <- c(100, 28, 98, 100, 85, 63, 51, 48, 34, 43, 54, 41, 18)
 boot_inclusion <- boot_inclusion %>% rename(projpred=projpred_incp, steplm=steplm_incp)
 cumsum(bd$n)

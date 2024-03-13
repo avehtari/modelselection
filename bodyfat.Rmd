@@ -168,8 +168,11 @@ height as two central IVs [independent variables] for estimating body
 fat proportion, and will not subject these two to variable
 selection.'' We subject all variables to selection. 
 ```{r, results='hide'}
+doParallel::registerDoParallel(getOption("mc.cores", 1))
 fitrhs_cvvs <- cv_varsel(fitrhs, method = 'forward', cv_method = 'loo',
-                         nloo = n, verbose = FALSE)
+                         seed = SEED, verbose = FALSE, parallel = TRUE)
+doParallel::stopImplicitCluster()
+foreach::registerDoSEQ()
 ```
 
 And the estimated predictive performance of smaller models compared to the full model.
@@ -183,7 +186,7 @@ get a PSIS-LOO [@Vehtari+etal:PSIS-LOO:2017] based recommendation for
 the model size to choose.
 ```{r}
 (nsel <- suggest_size(fitrhs_cvvs, alpha=0.1))
-(vsel <- solution_terms(fitrhs_cvvs)[1:nsel])
+(vsel <- ranking(fitrhs_cvvs)$fulldata[1:nsel])
 ```
 
 Based on this recommendation we continue with two variables `abdomen`
@@ -193,7 +196,7 @@ Dunkler (2018) had seven variables `height` (fixed), `abdomen` (fixed),
 
 Form the projected posterior for the selected model.
 ```{r}
-projrhs <- project(fitrhs_cvvs, nv = nsel, ns = 4000)
+projrhs <- project(fitrhs_cvvs, nterms = nsel, ndraws = 4000)
 ```
 
 Plot the marginals of the projected posterior.
@@ -212,38 +215,13 @@ of the selection method they used.
 
 Before looking at the corresponding bootstrap results we can look at the
 stability of selection process based on the LOO-CV selection paths
-computed by `cv_varsel` (the code to make the following plot will be
-included in __projpred__ package).
+computed by `cv_varsel`.
 
 ```{r}
-source("projpredpct.R")
-rows <- nrow(fitrhs_cvvs[["pct_solution_terms_cv"]])
-col <- nrow(fitrhs_cvvs[["pct_solution_terms_cv"]])
-pctch <- round(fitrhs_cvvs[["pct_solution_terms_cv"]], 2)
-colnames(pctch)[1] <- ".size"
-pct <- get_pct_arr(pctch, 13)
-col_brks <- get_col_brks()
-pct$val_grp <- as.character(sapply(pct$val, function(x) sum(x >= col_brks$breaks)))
-if (identical(rows, 0)) rows <- pct$var[1]
-pct$sel <- (pct$.size == col) & (pct$var %in% rows)
-brks <- sort(unique(as.numeric(pct$val_grp)) + 1)
-ggplot(pct, aes_(x = ~.size, y = ~var)) +
-    geom_tile(aes_(fill = ~val_grp, color = ~sel),
-              width = 1, height = 0.9, size = 1) +
-        geom_text(aes_(label = ~val, fontface = ~sel+1)) +
-    coord_cartesian(expand = FALSE) +
-    scale_y_discrete(limits = rev(levels(pct$var))) +
-    scale_x_discrete(limits = seq(1,col)) +
-    scale_color_manual(values = c("white", "black")) +
-    labs(x = "Model size", y = "",
-         title = "Fraction of cv-folds that select the given variable") +
-    scale_fill_manual(breaks = brks, values = col_brks$pal[brks]) +
-    theme_proj() +
-    theme(legend.position = "none",
-          axis.text.y = element_text(angle = 45))
+plot(cv_proportions(fitrhs_cvvs, cumulate = TRUE))
 ```
 
-For model sizes 1-3 selection paths in different LOO-CV cases are always the same `abdomen?, `weight`, and `wrist`. For larger model sizes there are some small variation, but mostly the order is quite consistent. 
+For model sizes 1-3 selection paths in different LOO-CV cases are always the same `abdomen`, `weight`, and `wrist`. For larger model sizes there are some small variation, but mostly the order is quite consistent. 
 
 Running `stan_glm` with `prior=hs()` and `cv_varsel` do not take much time when run only once, but for a notebook running them 1000 times would take hours. The code for running the above variable selection procedure for 100 different bootstrapped datasets is as follows.
 ```{r}
@@ -468,10 +446,13 @@ tau0 <- p0/(p-p0) * 1/sqrt(n)
 hs_prior <- hs(global_scale=tau0)
 fitrhs2 <- stan_glm(formula2, data = dfr, prior = hs_prior, QR = TRUE, 
                    seed=SEED, refresh=0)
+doParallel::registerDoParallel(getOption("mc.cores", 1))
 fitrhs2_cvvs <- cv_varsel(fitrhs2, method = 'forward', cv_method = 'loo',
-                          nloo=n, verbose = FALSE)
+                          seed = SEED, verbose = FALSE, parallel = TRUE)
+doParallel::stopImplicitCluster()
+foreach::registerDoSEQ()
 nsel2 <- suggest_size(fitrhs2_cvvs, alpha=0.1)
-vsel2 <- solution_terms(fitrhs2_cvvs)[1:nsel2]
+vsel2 <- ranking(fitrhs2_cvvs)$fulldata[1:nsel2]
 loormse_full2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$ref$mu)^2))
 loormse_proj2 <- sqrt(mean((df$siri-fitrhs2_cvvs$summaries$sub[[nsel2]]$mu)^2))
 print(paste('PSIS-LOO RMSE Bayesian full model: ', round(loormse_full2,1)))
